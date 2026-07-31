@@ -1,0 +1,6 @@
+tugas besok
+
+1. semua komponen di pecah menggunakan kosep atomic desain
+2. pindahkan halaman ui ke folder components
+3. buat desain register 
+4. buat halaman dasbord kasir 
