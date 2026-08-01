@@ -4,12 +4,12 @@ const LeftCopy = ({
     badges = ['Transaksi Real-time', 'Manajemen Stok Otomatis', 'Laporan Per Cabang'],
 }) => {
     return (
-        <div className="w-full max-w-[620px] text-white lg:pr-8">
+        <div className="w-full max-w-155 text-white lg:pr-8">
             <h1 className="text-4xl font-semibold leading-tight text-white sm:text-5xl lg:text-[4rem] lg:leading-[1.05]">
                 {title}
             </h1>
 
-            <p className="mt-6 max-w-[520px] text-base text-blue-100 sm:text-lg">
+            <p className="mt-6 max-w-130 text-base text-blue-100 sm:text-lg">
                 {description}
             </p>
 

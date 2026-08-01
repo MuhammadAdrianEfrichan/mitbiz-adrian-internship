@@ -1,6 +1,13 @@
-tugas besok
-
+tugas sampai tanggal 8 agustus 
 1. semua komponen di pecah menggunakan kosep atomic desain (done)
 2. pindahkan halaman ui ke folder components(done)
 3. buat desain register 
-4. buat halaman dasbord kasir 
+    pada halaman registrasi done tambahkan kondisi yang dimana jika registrasi gagal
+4. buat halaman dasbord kasir  
+5. desain halaman dasbord admin
+6 tambahkan libary react router
+
+
+tugas tgl 8 sampai 15 
+1. integrasikan API ke desain
+2. semua logic di selesaikan 

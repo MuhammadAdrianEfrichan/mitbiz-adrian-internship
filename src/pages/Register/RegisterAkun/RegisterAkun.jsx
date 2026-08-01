@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
-import ContentLogin from '../../components/fragments/ContentLogin';
-import FormLogin from '../../components/fragments/FormLogin';
-import LeftCopy from '../../components/fragments/LeftCopy';
-import LoginCard from '../../components/fragments/LoginCard';
-import TagLine from '../../components/fragments/TagLine';
+import ContentLogin from '../../../components/fragments/ContentLogin';
+import FormLogin from '../../../components/fragments/FormLogin';
+import LeftCopy from '../../../components/fragments/LeftCopy';
+import LoginCard from '../../../components/fragments/LoginCard';
+import TagLine from '../../../components/fragments/TagLine';
 
-const Register = () => {
+const RegisterAkun = () => {
     const [formValues, setFormValues] = useState({
         name: 'Budi Santoso',
         email: 'email@bisnis.com',
@@ -116,4 +116,4 @@ const Register = () => {
     );
 };
 
-export default Register;
+export default RegisterAkun;
