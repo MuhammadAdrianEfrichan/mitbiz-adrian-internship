@@ -105,7 +105,7 @@ const RegisterOutlet = () => {
                             <span className="mr-2">&lt;</span> Kembali
                         </button>
 
-                        <ButtonLogin className="max-w-[200px]">Buat Akun</ButtonLogin>
+                        <ButtonLogin className="max-w-50">Buat Akun</ButtonLogin>
                     </div>
                 </form>
             </LoginCard>

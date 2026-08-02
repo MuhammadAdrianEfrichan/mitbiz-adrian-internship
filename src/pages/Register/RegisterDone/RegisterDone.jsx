@@ -47,7 +47,7 @@ const RegisterDone = () => {
                     })}
                 </div>
 
-                <div className="mx-auto flex w-full max-w-[420px] flex-col items-center justify-center gap-5 py-6 text-center">
+                <div className="mx-auto flex w-full max-w-105 flex-col items-center justify-center gap-5 py-6 text-center">
                     <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#DFF7E8] text-4xl text-[#2FBF71] shadow-inner">
                         ✓
                     </div>
@@ -60,7 +60,7 @@ const RegisterDone = () => {
                     </p>
 
                     <div className="w-full pt-2">
-                        <ButtonLogin className="max-w-[420px]">Mulai Mitbiz POS</ButtonLogin>
+                        <ButtonLogin className="max-w-105">Mulai Mitbiz POS</ButtonLogin>
                     </div>
                 </div>
             </LoginCard>

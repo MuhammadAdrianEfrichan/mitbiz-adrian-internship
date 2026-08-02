@@ -122,7 +122,7 @@ const RegisterBisnis = () => {
                             <span className="mr-2">&lt;</span> Kembali
                         </button>
 
-                        <ButtonLogin className="max-w-[220px]">Lanjut ke Outlet</ButtonLogin>
+                        <ButtonLogin className="max-w-55">Lanjut ke Outlet</ButtonLogin>
                     </div>
                 </form>
             </LoginCard>
