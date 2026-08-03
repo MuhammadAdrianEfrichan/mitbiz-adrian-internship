@@ -3,7 +3,6 @@ import Navbar from "../../../components/fragments/User/Navbar/Navbar"
 import StatistikCard from "../../../components/fragments/User/StatistikCard"
 import Input from "../../../components/ui/Input"
 import { PiPackageThin } from 'react-icons/pi';
-import { CiSearch } from "react-icons/ci";
 import InputSearch from "../../../components/ui/InputSearch";
 
 
@@ -21,7 +20,7 @@ const Stok = ()=>{
                 <h3 className="text-black text-xl p-10">Stok Produk</h3>
                 <div className="w-full px-10 grid grid-cols-3 gap-5">
                     
-                    <InputSearch type="text" className=" w-full rounded-xl border border-slate-300 bg-gray-100 px-4 py-3.5 text-base text-slate-600 focus:border-[#0F74D7] focus:outline-none focus:ring-2 focus:ring-blue-100 placeholder:pl-5"placeholder="Cari Produk atau SKU..." icon={<CiSearch className="w-5 h-5" />}/>
+                    <InputSearch type="text" className=" w-full rounded-xl border border-slate-300 bg-gray-100 px-4 py-3.5 text-base text-slate-600 focus:border-[#0F74D7] focus:outline-none focus:ring-2 focus:ring-blue-100 placeholder:pl-5"placeholder="Cari Produk atau SKU..." />
 
                     <select className="w-full rounded-xl border border-slate-300 bg-gray-200 px-4 py-3.5 text-base text-slate-600 focus:border-[#0F74D7] focus:outline-none focus:ring-2 focus:ring-blue-100">
                             <option value="">Semua kategori</option>

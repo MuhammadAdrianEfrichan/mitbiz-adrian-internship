@@ -4,6 +4,7 @@ import RegisterOutlet from '../pages/Register/RegisterOutlet'
 import RegisterDone from '../pages/Register/RegisterDone'
 import Home from "../pages/User/Home/Home";
 import Stok from "../pages/User/Stok";
+import Transaksi from "../pages/User/Transaksi";
 
 
 const routes =[
@@ -30,6 +31,10 @@ const routes =[
     {
         path: '/stok-kasir',
         element : <Stok />,
+    },
+    {
+        path: '/transaksi-kasir',
+        element : <Transaksi />,
     },
 ]
 
