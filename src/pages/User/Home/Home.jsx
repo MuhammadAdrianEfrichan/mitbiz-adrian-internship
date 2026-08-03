@@ -1,6 +1,7 @@
-import UseDateTime from '../../../components/fragments/UseDateTime';
+import UseDateTime from '../../../components/hooks/UseDateTime';
 import Navbar from '../../../components/fragments/User/Navbar';
 import { FiClock, FiDollarSign, FiPercent } from 'react-icons/fi';
+import StatistikCard from '../../../components/fragments/User/StatistikCard';
 
 const Home = () => {
     const now = UseDateTime();
@@ -53,33 +54,8 @@ const Home = () => {
                     </h2>
 
                     <div className="mt-5 grid gap-5 md:grid-cols-2">
-                        <div className="rounded-[1.25rem] border border-[#dfe3e8] bg-white p-5 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
-                            <div className="flex items-center justify-between gap-4">
-                                <h3 className="text-[1.1rem] font-semibold text-[#111827]">Diskon diberikan</h3>
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#f3f4f6] text-[#374151]">
-                                    <FiPercent className="text-[1.5rem]" />
-                                </div>
-                            </div>
-
-                            <p className="mt-8 text-[2.9rem] font-bold leading-none tracking-[-0.06em] text-[#111827]">
-                                Rp 0
-                            </p>
-                            <p className="mt-3 text-[1rem] text-[#6b7280]">Diskon diberikan</p>
-                        </div>
-
-                        <div className="rounded-[1.25rem] border border-[#dfe3e8] bg-white p-5 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
-                            <div className="flex items-center justify-between gap-4">
-                                <h3 className="text-[1.1rem] font-semibold text-[#111827]">Total Pajak</h3>
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#f3f4f6] text-[#374151]">
-                                    <FiDollarSign className="text-[1.5rem]" />
-                                </div>
-                            </div>
-
-                            <p className="mt-8 text-[2.9rem] font-bold leading-none tracking-[-0.06em] text-[#111827]">
-                                Rp 0
-                            </p>
-                            <p className="mt-3 text-[1rem] text-[#6b7280]">Pajak dikumpulkan</p>
-                        </div>
+                        <StatistikCard icon={<FiPercent className="text-[1.5rem]" />}>Diskon yang diberikan</StatistikCard>
+                        <StatistikCard icon={<FiDollarSign className="text-[1.5rem]" />}>Total Pajak</StatistikCard>
                     </div>
                 </section>
             </main>

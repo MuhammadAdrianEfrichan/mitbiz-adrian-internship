@@ -1,4 +1,4 @@
-// src/hooks/useDateTime.js
+
 import { useState, useEffect } from "react";
 
 const UseDateTime= ()=> {

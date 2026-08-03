@@ -3,6 +3,7 @@ import RegisterAkun from '../pages/Register/RegisterAkun'
 import RegisterOutlet from '../pages/Register/RegisterOutlet'
 import RegisterDone from '../pages/Register/RegisterDone'
 import Home from "../pages/User/Home/Home";
+import Stok from "../pages/User/Stok";
 
 
 const routes =[
@@ -25,7 +26,11 @@ const routes =[
     {
         path: '/dasboard-kasir',
         element : <Home />,
-    }
+    },
+    {
+        path: '/stok-kasir',
+        element : <Stok />,
+    },
 ]
 
 export default routes;
