@@ -15,24 +15,25 @@ import {
   FiUsers,
 } from "react-icons/fi";
 import logo from '../../../../assets/image.png'
+import { useLocation, useNavigate } from "react-router-dom";
 
 const menuGroups = [
   {
     title: "Dashboard",
     items: [
-      { label: "Dashboard", icon: FiGrid, active: true },
-      { label: "Laporan", icon: FiFileText },
+      { label: "Dashboard", icon: FiGrid, path: "/home-admin" },
+      { label: "Laporan", icon: FiFileText, path: "/laporan-admin" },
       { label: "Shift Kasir", icon: FiClock },
     ],
   },
   {
     title: "Master Data",
     items: [
-      { label: "Cabang", icon: FiBriefcase },
-      { label: "Kasir", icon: FiUsers },
-      { label: "Produk", icon: FiPackage },
-      { label: "Kategori", icon: FiLayers },
-      { label: "Metode Pembayaran", icon: FiCreditCard },
+      { label: "Cabang", icon: FiBriefcase, path: "/cabang-admin" },
+      { label: "Kasir", icon: FiUsers, path: "/kasir-admin" },
+      { label: "Produk", icon: FiPackage, path: "/produk-admin" },
+      { label: "Kategori", icon: FiLayers, path: "/kategori-admin" },
+      { label: "Metode Pembayaran", icon: FiCreditCard, path: "/metode-pembayaran-admin" },
     ],
   },
   {
@@ -52,7 +53,15 @@ const menuGroups = [
 ];
 
 const SidebarAdmin = (props) => {
-    const {children} = props;
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { children } = props;
+
+  const isCurrentPath = (path) => {
+    if (!path) return false;
+    return location.pathname.toLowerCase() === path.toLowerCase();
+  };
+
   return (
     <div className="flex h-screen bg-[#f3f4f6] text-slate-800">
         <aside className="w-70 h-screen bg-[#f5f5f5] border-r border-slate-200 flex flex-col justify-between px-4 py-5 shadow-sm">
@@ -71,28 +80,33 @@ const SidebarAdmin = (props) => {
               )}
 
               <ul className="space-y-1">
-                {group.items.map(({ label, icon: Icon, active }) => (
-                  <li key={label}>
-                    <button
-                      type="button"
-                      className={[
-                        "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[0.96rem] font-medium transition-all duration-200 cursor-pointer",
-                        active
-                          ? "bg-[#EAF2FF] text-[#0a5cb3] shadow-sm"
-                          : "text-slate-700 hover:bg-slate-200/70 hover:text-slate-900",
-                      ].join(" ")}
-                    >
-                      <span className={[
-                        "flex h-6 w-6 items-center justify-center rounded-md",
-                        active ? "bg-white text-[#0a5cb3]" : "text-slate-600",
-                      ].join(" ")}>
-                        <Icon size={17} />
-                      </span>
-                      <span className="flex-1">{label}</span>
-                      {active && <FiChevronRight size={16} className="text-[#0a5cb3]" />}
-                    </button>
-                  </li>
-                ))}
+                {group.items.map(({ label, icon: Icon, path }) => {
+                  const active = isCurrentPath(path);
+
+                  return (
+                    <li key={label}>
+                      <button
+                        onClick={() => path && navigate(path)}
+                        type="button"
+                        className={[
+                          "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[0.96rem] font-medium transition-all duration-200 cursor-pointer",
+                          active
+                            ? "bg-[#EAF2FF] text-[#0a5cb3] shadow-sm"
+                            : "text-slate-700 hover:bg-slate-200/70 hover:text-slate-900",
+                        ].join(" ")}
+                      >
+                        <span className={[
+                          "flex h-6 w-6 items-center justify-center rounded-md",
+                          active ? "bg-white text-[#0a5cb3]" : "text-slate-600",
+                        ].join(" ")}>
+                          <Icon size={17} />
+                        </span>
+                        <span className="flex-1">{label}</span>
+                        {active && <FiChevronRight size={16} className="text-[#0a5cb3]" />}
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}

@@ -8,6 +8,12 @@ import Transaksi from "../pages/User/Transaksi";
 import RiwayatTransaksi from "../pages/User/RiyawatTransaksi";
 import HomeAdmin from "../pages/Admin/Home/Home";
 import RegisterAdmin from "../pages/Admin/RegisterAdmin";
+import Laporan from "../pages/Admin/Laporan/Laporan";
+import Cabang from "../pages/Admin/Cabang/Cabang";
+import Kasir from "../pages/Admin/Kasir/Kasir";
+import Produk from "../pages/Admin/Produk/Produk";
+import Kategori from "../pages/Admin/Kategori/Kategori";
+import Pembayaran from "../pages/Admin/Pembayaran";
 
 
 const routes =[
@@ -51,7 +57,31 @@ const routes =[
     {
         path : '/register-admin',
         element : <RegisterAdmin />
-    }
+    },
+    {
+        path : '/laporan-admin',
+        element : <Laporan />
+    },
+    {
+        path : '/cabang-admin',
+        element : <Cabang />
+    },
+    {
+        path : '/kasir-admin',
+        element : <Kasir />
+    },
+    {
+        path : '/produk-admin',
+        element : <Produk />
+    },
+    {
+        path : '/kategori-admin',
+        element : <Kategori />
+    },
+    {
+        path : '/metode-pembayaran-admin',
+        element : <Pembayaran />
+    },
 ]
 
 export default routes;

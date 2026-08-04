@@ -5,7 +5,8 @@ const MainAdmin = (props) => {
     subtitle, 
     buttonLabel, 
     buttonClassName = "", 
-    content 
+    content ,
+    icon
   } = props;
 
   return (
@@ -18,7 +19,7 @@ const MainAdmin = (props) => {
 
         {buttonLabel && (
           <button className={buttonClassName}>
-            {buttonLabel}
+            {icon}{buttonLabel}
           </button>
         )}
       </div>
