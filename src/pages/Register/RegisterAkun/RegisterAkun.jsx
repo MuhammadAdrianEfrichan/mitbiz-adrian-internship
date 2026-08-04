@@ -5,14 +5,42 @@ import LeftCopy from '../../../components/fragments/LeftCopy';
 import LoginCard from '../../../components/fragments/LoginCard';
 import TagLine from '../../../components/fragments/TagLine';
 
-const RegisterAkun = () => {
-    const [formValues, setFormValues] = useState({
-        name: 'Budi Santoso',
-        email: 'email@bisnis.com',
-        phone: '+62 812-3456-7890',
-        password: '',
-        confirmPassword: '',
+const RegisterAkun = ({onNext,loading} ) => {
+    const [form, setForm] = useState({
+        name : "",
+        email : "",
+        phone : "",
+        password : "",
+        confirmPassword : "",
     });
+    const [errors, setErrors] = useState({});
+
+    const handleChange = (e) =>{
+        const {name, value } = e.target;
+        setForm((prev)=> ({...prev, [name] : value}));
+    };
+
+        const validate = () => {
+            const newErrors = {};
+            if (!form.name.trim()) newErrors.name = "Nama wajib diisi";
+            if (!form.email.includes("@")) newErrors.email = "Email tidak valid";
+            if (!form.phone.includes("+62")) newErrors.phone = "Nomor Phone tidak valid";
+            if (form.password.length < 8) newErrors.password = "Password minimal 8 karakter";
+            if (form.password !== form.confirmPassword) newErrors.confirmPassword = "Password tidak sama";
+            return newErrors;
+        };
+        const handleSubmit = (e) =>{
+            e.preventDefault();
+            console.log(form);
+            const validationErrors = validate();
+            if (Object.keys(validationErrors).length > 0){
+                setErrors(validationErrors);
+                return;
+            }
+            setErrors({});
+            onNext(form);
+        }
+
 
     const registerFields = useMemo(
         () => [
@@ -22,6 +50,7 @@ const RegisterAkun = () => {
                 type: 'text',
                 placeholder: 'Contoh: Budi Santoso',
                 required: true,
+
             },
             {
                 label: 'Email',
@@ -36,6 +65,7 @@ const RegisterAkun = () => {
                 type: 'tel',
                 placeholder: '+62 812-3456-7890',
                 required: true,
+
             },
             {
                 label: 'Password',
@@ -57,10 +87,6 @@ const RegisterAkun = () => {
         [],
     );
 
-    const handleChange = (event) => {
-        const { name, value } = event.target;
-        setFormValues((prev) => ({ ...prev, [name]: value }));
-    };
 
     return (
         <ContentLogin>
@@ -98,8 +124,9 @@ const RegisterAkun = () => {
                 <FormLogin
                     variant="register"
                     fields={registerFields}
-                    values={formValues}
+                    values={form}
                     onFieldChange={handleChange}
+                    onSubmit = {handleSubmit}
                     submitLabel="Lanjut ke Info Bisnis"
                     showFooterText={false}
                 >

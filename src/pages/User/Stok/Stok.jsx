@@ -1,15 +1,14 @@
 import { FiDollarSign, FiPercent } from "react-icons/fi"
-import Navbar from "../../../components/fragments/User/Navbar/Navbar"
 import StatistikCard from "../../../components/fragments/User/StatistikCard"
 import Input from "../../../components/ui/Input"
 import { PiPackageThin } from 'react-icons/pi';
 import InputSearch from "../../../components/ui/InputSearch";
+import MainKasir from "../../../components/fragments/User/MainKasir";
 
 
 const Stok = ()=>{
     return (
-        <div className=" px-6 min-h-screen bg-[#f5f6f8] text-[#111827]">
-            <Navbar />
+        <MainKasir>
             <div className=" mt-5 grid gap-5 md:grid-cols-3">
                 <StatistikCard icon={<PiPackageThin className="text-[1.5rem]" />}>Total Produk</StatistikCard>
                 <StatistikCard icon={<FiDollarSign className="text-[1.5rem]" />}>Stok Menipis</StatistikCard>
@@ -65,7 +64,8 @@ const Stok = ()=>{
                 </table>
                 </div>
             </div>
-        </div>
+        </MainKasir>
+        
     )
 }
 

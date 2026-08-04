@@ -11,6 +11,7 @@ const FormLogin = ({
     submitLabel = 'Next',
     footerText,
     showFooterText = true,
+    onSubmit= onSubmit,
 }) => {
     const defaultFields = [
         {
@@ -32,7 +33,7 @@ const FormLogin = ({
     const fieldList = fields.length ? fields : defaultFields;
 
     return (
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={onSubmit}>
             {fieldList.map((field) => (
                 <div key={field.name} className="space-y-2">
                     <Label htmlFor={field.name} className="mb-1 block text-base font-medium text-slate-700">
