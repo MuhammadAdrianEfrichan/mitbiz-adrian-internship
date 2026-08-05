@@ -23,7 +23,7 @@ const menuGroups = [
     items: [
       { label: "Dashboard", icon: FiGrid, path: "/home-admin" },
       { label: "Laporan", icon: FiFileText, path: "/laporan-admin" },
-      { label: "Shift Kasir", icon: FiClock },
+      { label: "Shift Kasir", icon: FiClock, path: "/shift-kasir-admin" },
     ],
   },
   {
@@ -39,15 +39,15 @@ const menuGroups = [
   {
     title: "Inventory",
     items: [
-      { label: "Stok", icon: FiBox },
-      { label: "Penyesuaian Stok", icon: FiShoppingBag },
+      { label: "Stok", icon: FiBox, path:'/stok-admin' },
+      { label: "Penyesuaian Stok", icon: FiShoppingBag, path:'/penyesuaian-stok-admin' },
     ],
   },
   {
     title: "Pengaturan",
     items: [
-      { label: "Pengaturan", icon: FiSettings },
-      { label: "Riwayat Transaksi", icon: FiBarChart2 },
+      { label: "Pengaturan", icon: FiSettings, path: '/pengaturan-admin' },
+      { label: "Riwayat Transaksi", icon: FiBarChart2, path: '/riwayat-transaksi-admin' },
     ],
   },
 ];

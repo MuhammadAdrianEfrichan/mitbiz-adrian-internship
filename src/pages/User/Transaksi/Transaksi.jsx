@@ -5,9 +5,9 @@ import { BiDetail } from "react-icons/bi";
 import { PiBasket } from "react-icons/pi";
 const Transaksi = ()=>{
     return(
-        <div className=" px-6 min-h-screen bg-[#f5f6f8] text-[#111827]">
+        <div className="min-h-screen bg-[#f5f6f8] text-[#111827]">
             <Navbar />
-            <div className="flex gap-8">
+            <div className="flex gap-8 px-6 pb-10 pt-24">
                 <div className="mt-10 flex justify-between w-[70%] h-500">
                 <h3 className="text-black text-2xl font-bold"> Pilih Produk</h3>
                 <InputSearch type="text" className=" w-100 rounded-xl border border-slate-300 bg-gray-100 px-4 py-3.5 text-base text-slate-600 focus:border-[#0F74D7] focus:outline-none focus:ring-2 focus:ring-blue-100 placeholder:pl-5"placeholder="Cari Produk atau SKU..."/>

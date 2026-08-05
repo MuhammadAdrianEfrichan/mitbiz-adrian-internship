@@ -11,7 +11,7 @@ const FormLogin = ({
     submitLabel = 'Next',
     footerText,
     showFooterText = true,
-    onSubmit= onSubmit,
+    onSubmit,
 }) => {
     const defaultFields = [
         {

@@ -21,7 +21,7 @@ const Home = () => {
         <div className="min-h-screen bg-[#f5f6f8] text-[#111827]">
             <Navbar />
 
-            <main className=" px-5 pb-10 pt-8">
+            <main className="px-5 pb-10 pt-24">
                 <section className="flex items-center justify-between gap-6 border-b border-[#dfe3e8] pb-6">
                     <div>
                         <p className="text-[2rem] font-semibold leading-tight tracking-[-0.02em] text-[#1f2937]">

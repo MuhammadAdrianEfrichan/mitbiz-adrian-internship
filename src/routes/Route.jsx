@@ -14,6 +14,11 @@ import Kasir from "../pages/Admin/Kasir/Kasir";
 import Produk from "../pages/Admin/Produk/Produk";
 import Kategori from "../pages/Admin/Kategori/Kategori";
 import Pembayaran from "../pages/Admin/Pembayaran";
+import AdminStok from "../pages/Admin/AdminStok/AdminStok";
+import PenyesuaianStok from "../pages/Admin/PenyesuaianStok/PenyesuaianStok";
+import Pengaturan from "../pages/Admin/Pengaturan/Pengaturan";
+import Riwayat from "../pages/Admin/Riwayat/Riwayat";
+import ShiftKasir from "../pages/Admin/ShiftKasir/ShiftKasir";
 
 
 const routes =[
@@ -81,6 +86,26 @@ const routes =[
     {
         path : '/metode-pembayaran-admin',
         element : <Pembayaran />
+    },
+    {
+        path : '/stok-admin',
+        element : <AdminStok />
+    },
+    {
+        path : '/penyesuaian-stok-admin',
+        element : <PenyesuaianStok />
+    },
+    {
+        path : '/pengaturan-admin',
+        element : <Pengaturan />
+    },
+    {
+        path : '/riwayat-transaksi-admin',
+        element : <Riwayat />
+    },
+    {
+        path : '/shift-kasir-admin',
+        element : <ShiftKasir />
     },
 ]
 
