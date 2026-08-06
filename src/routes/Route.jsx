@@ -19,6 +19,7 @@ import PenyesuaianStok from "../pages/Admin/PenyesuaianStok/PenyesuaianStok";
 import Pengaturan from "../pages/Admin/Pengaturan/Pengaturan";
 import Riwayat from "../pages/Admin/Riwayat/Riwayat";
 import ShiftKasir from "../pages/Admin/ShiftKasir/ShiftKasir";
+import RegisterBisnis from "../pages/Register/RegisterBisnis";
 
 
 const routes =[
@@ -27,8 +28,12 @@ const routes =[
         element : <Login />
     },
     {
-        path: '/register-akun',
-        element : <RegisterAkun />,
+        path : '/register-admin',
+        element : <RegisterAdmin />
+    },
+    {
+        path: '/register-bisnis',
+        element : <RegisterBisnis />,
     },
     {
         path: '/register-outlet',
@@ -59,10 +64,7 @@ const routes =[
         path: '/home-admin',
         element : <HomeAdmin />,
     },
-    {
-        path : '/register-admin',
-        element : <RegisterAdmin />
-    },
+
     {
         path : '/laporan-admin',
         element : <Laporan />

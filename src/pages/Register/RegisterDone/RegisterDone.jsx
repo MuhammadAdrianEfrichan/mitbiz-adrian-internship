@@ -1,3 +1,4 @@
+import { useLocation, useNavigate } from 'react-router-dom';
 import ContentLogin from '../../../components/fragments/ContentLogin';
 import LeftCopy from '../../../components/fragments/LeftCopy';
 import LoginCard from '../../../components/fragments/LoginCard';
@@ -6,6 +7,19 @@ import ButtonLogin from '../../../components/fragments/ButtonLogin';
 const steps = ['Akun', 'Bisnis', 'Outlet'];
 
 const RegisterDone = () => {
+    const navigate = useNavigate();
+    const { state } = useLocation();
+    const hasError = state?.status === 'error' || Boolean(state?.error);
+
+    const title = hasError ? 'Pendaftaran Gagal' : 'Akun Berhasil Dibuat!';
+    const description = hasError
+        ? state?.error || 'Terjadi kesalahan saat membuat akun. Silakan coba lagi atau hubungi admin.'
+        : 'Selamat datang di Mitbiz POS. Bisnis Anda sudah siap untuk mulai dengan cekmail untuk verifikasi akun.';
+    const buttonText = 'Kembali ke Login';
+    const iconText = hasError ? '!' : '✓';
+    const iconClasses = hasError ? 'bg-[#FEE2E2] text-[#DC2626]' : 'bg-[#DFF7E8] text-[#2FBF71]';
+    const titleClasses = hasError ? 'text-3xl font-semibold text-[#DC2626]' : 'text-3xl font-semibold text-slate-800';
+
     return (
         <ContentLogin>
             <LeftCopy
@@ -48,19 +62,24 @@ const RegisterDone = () => {
                 </div>
 
                 <div className="mx-auto flex w-full max-w-105 flex-col items-center justify-center gap-5 py-6 text-center">
-                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#DFF7E8] text-4xl text-[#2FBF71] shadow-inner">
-                        ✓
+                    <div className={`flex h-20 w-20 items-center justify-center rounded-full text-4xl shadow-inner ${iconClasses}`}>
+                        {iconText}
                     </div>
 
-                    <h3 className="text-3xl font-semibold text-slate-800">Akun Berhasil Dibuat!</h3>
+                    <h3 className={titleClasses}>{title}</h3>
 
                     <p className="max-w-[320px] text-base leading-relaxed text-slate-500">
-                        Selamat datang di Mitbiz POS. Bisnis Anda sudah siap untuk mulai dengan cekmail untuk
-                        verifikasi akun.
+                        {description}
                     </p>
 
                     <div className="w-full pt-2">
-                        <ButtonLogin className="max-w-105">Mulai Mitbiz POS</ButtonLogin>
+                        <ButtonLogin
+                            type="button"
+                            className="max-w-105"
+                            onClick={() => navigate('/')}
+                        >
+                            {buttonText}
+                        </ButtonLogin>
                     </div>
                 </div>
             </LoginCard>

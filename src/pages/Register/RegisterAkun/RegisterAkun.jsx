@@ -24,14 +24,13 @@ const RegisterAkun = ({onNext,loading} ) => {
             const newErrors = {};
             if (!form.name.trim()) newErrors.name = "Nama wajib diisi";
             if (!form.email.includes("@")) newErrors.email = "Email tidak valid";
-            if (!form.phone.includes("+62")) newErrors.phone = "Nomor Phone tidak valid";
+            if (!form.phone.includes("+62"||"08")) newErrors.phone = "Nomor Phone tidak valid";
             if (form.password.length < 8) newErrors.password = "Password minimal 8 karakter";
             if (form.password !== form.confirmPassword) newErrors.confirmPassword = "Password tidak sama";
             return newErrors;
         };
         const handleSubmit = (e) =>{
             e.preventDefault();
-            console.log(form);
             const validationErrors = validate();
             if (Object.keys(validationErrors).length > 0){
                 setErrors(validationErrors);

@@ -1,30 +1,59 @@
 import { useState } from "react"
 import RegisterAkun from "../../Register/RegisterAkun";
+import { register1, register2, register3 } from "../../../services/auth.service";
+import RegisterOutlet from "../../Register/RegisterOutlet";
+import RegisterBisnis from "../../Register/RegisterBisnis";
+import RegisterDone from "../../Register/RegisterDone";
 
 const RegisterAdmin = ()=>{
-    const [step, useStep] = useState(1);
+    const [step, setStep] = useState(1);
     const [tempUserId, setTempUserId] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+
     const handleStep1 = async (formData) =>{
         setLoading(true);
         setError("");
         try{
-            const res = await fetch("https://schema.getpostman.com/json/collection/v2.1.0/collection.json/auth/login",{
-                method: "POST",
-                headers : {"Content-Type": "application/json"},
-                body : JSON.stringify(formData),
-            });
-            const data = await res.json();
-            if (!res.ok) {
-            setError(data.message || "Registrasi akun gagal");
-            return;
-            }
-
+            const data = await register1(formData);
+            console.log("Response step 1:", data);
             setTempUserId(data.userId ?? data.data?.userId ?? null);
             setStep(2);
         }catch{
+            console.log(err);
             setError("Tidak bisa terhubung ke server");
+        }finally {
+            setLoading(false);
+        }
+    }
+    const handleStep2 = async (formData) =>{
+        setLoading(true);
+        setError("");
+        try{
+            const data = await register2(formData);
+            console.log("Response step 2:", data);
+            setTempUserId(data.userId ?? data.data?.userId ?? null);
+            setStep(3);
+            console.log(data)
+        }catch(err){
+            console.log(err);
+            setError(err.message||"Tidak bisa terhubung ke server");
+        }finally {
+            setLoading(false);
+        }
+    }
+    const handleStep3 = async (formData) =>{
+        setLoading(true);
+        setError("");
+        try{
+            const data = await register3(formData);
+            console.log("Response step 3:", data);
+            setTempUserId(data.userId ?? data.data?.userId ?? null);
+            setStep(4);
+            console.log(data)
+        }catch(err){
+            console.log(err);
+            setError(err.message||"Tidak bisa terhubung ke server");
         }finally {
             setLoading(false);
         }
@@ -35,8 +64,9 @@ const RegisterAdmin = ()=>{
     {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
 
     {step === 1 && <RegisterAkun onNext={handleStep1} loading={loading} />}
-    {step === 2 && <StepOutlet onNext={handleStep2} loading={loading} />}
-    {step === 3 && <StepSuccess />}
+    {step === 2 && <RegisterBisnis onNext={handleStep2} loading={loading} />}
+    {step === 3 && <RegisterOutlet onNext={handleStep3} loading={loading} />}
+    {step === 4 && <RegisterDone />}
     </div>
     )
 }

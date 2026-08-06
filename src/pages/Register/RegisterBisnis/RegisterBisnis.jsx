@@ -4,11 +4,44 @@ import LoginCard from '../../../components/fragments/LoginCard';
 import TagLine from '../../../components/fragments/TagLine';
 import InputLogin from '../../../components/fragments/InputLogin';
 import ButtonLogin from '../../../components/fragments/ButtonLogin';
+import { useState } from 'react';
 
 const steps = ['Akun', 'Bisnis', 'Outlet'];
 
 
-const RegisterBisnis = () => {
+const RegisterBisnis = ({onNext,loading}) => {
+     const [form, setForm] = useState({
+            businessName : "",
+            businessCategory : "",
+            city: "",
+            province : "",
+        });
+        const [errors, setErrors] = useState({});
+    
+        const handleChange = (e) =>{
+            const {name, value } = e.target;
+            setForm((prev)=> ({...prev, [name] : value}));
+        };
+    
+            const validate = () => {
+                const newErrors = {};
+                if (!form.businessName.trim()) newErrors.businessName = "Nama bisnis wajib diisi";
+                if (!form.businessCategory) newErrors.businessCategory = "kategori wajib dipilih";
+                if (!form.city.trim()) newErrors.city = "city tidak valid";
+                if (!form.province) newErrors.province = "province wajib di pilih";
+                return newErrors;
+            };
+            const handleSubmit = (e) =>{
+                e.preventDefault();
+                console.log(form);
+                const validationErrors = validate();
+                if (Object.keys(validationErrors).length > 0){
+                    setErrors(validationErrors);
+                    return;
+                }
+                setErrors({});
+                onNext(form);
+            }
     return (
         <ContentLogin>
             <LeftCopy
@@ -39,8 +72,8 @@ const RegisterBisnis = () => {
                                             isDone
                                                 ? 'border-[#2FBF71] bg-[#2FBF71] text-white'
                                                 : isCurrent
-                                                  ? 'border-[#0F74D7] bg-[#0F74D7] text-white'
-                                                  : 'border-slate-300 bg-white text-slate-500'
+                                                ? 'border-[#0F74D7] bg-[#0F74D7] text-white'
+                                                : 'border-slate-300 bg-white text-slate-500'
                                         }`}
                                     >
                                         {isDone ? '✓' : index + 1}
@@ -68,15 +101,16 @@ const RegisterBisnis = () => {
                     subtitle="Isi detail bisnis Anda untuk personalisasi pengalaman POS."
                 />
 
-                <form className="space-y-4">
+                <form className="space-y-4" onSubmit={handleSubmit}>
                     <div className="space-y-2">
                         <label className="block text-base font-medium text-slate-700">
                             Nama Bisnis <span className="text-red-500">*</span>
-                        </label>
+                        </label> 
                         <InputLogin
                             name="businessName"
                             placeholder="Contoh: Budi Santoso"
-                            defaultValue=""
+                            value={form.businessName}
+                            onChange={handleChange}
                         />
                     </div>
 
@@ -84,7 +118,8 @@ const RegisterBisnis = () => {
                         <label className="block text-base font-medium text-slate-700">
                             Kategori Bisnis <span className="text-red-500">*</span>
                         </label>
-                        <select className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-base text-slate-600 focus:border-[#0F74D7] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                        <select className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-base text-slate-600 focus:border-[#0F74D7] focus:outline-none focus:ring-2 focus:ring-blue-100" name="businessCategory" value={form.businessCategory}
+                            onChange={handleChange}>
                             <option value="">Pilih kategori bisnis</option>
                             <option value="toko">Toko</option>
                             <option value="restoran">Restoran</option>
@@ -98,15 +133,18 @@ const RegisterBisnis = () => {
                             <label className="block text-base font-medium text-slate-700">
                                 Kota <span className="text-red-500">*</span>
                             </label>
-                            <InputLogin name="city" placeholder="Padang Panjang" defaultValue="" />
+                            <InputLogin name="city" placeholder="Padang Panjang" value={form.city}
+                            onChange={handleChange} />
                         </div>
 
                         <div className="space-y-2">
                             <label className="block text-base font-medium text-slate-700">
-                                Provinsi <span className="text-red-500">*</span>
+                                province <span className="text-red-500">*</span>
                             </label>
-                            <select className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-base text-slate-600 focus:border-[#0F74D7] focus:outline-none focus:ring-2 focus:ring-blue-100">
-                                <option value="">Sumatera Barat</option>
+                            <select className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-base text-slate-600 focus:border-[#0F74D7] focus:outline-none focus:ring-2 focus:ring-blue-100" name="province" value={form.province}
+                            onChange={handleChange}>
+                                <option value="">Pilih Provinsi</option>
+                                <option value="sumatera-barat">Sumatera Barat</option>
                                 <option value="jawa-barat">Jawa Barat</option>
                                 <option value="jakarta">DKI Jakarta</option>
                                 <option value="sumut">Sumatera Utara</option>
@@ -122,7 +160,7 @@ const RegisterBisnis = () => {
                             <span className="mr-2">&lt;</span> Kembali
                         </button>
 
-                        <ButtonLogin className="max-w-55">Lanjut ke Outlet</ButtonLogin>
+                        <ButtonLogin className="max-w-55" type='submit'>Lanjut ke Outlet</ButtonLogin>
                     </div>
                 </form>
             </LoginCard>

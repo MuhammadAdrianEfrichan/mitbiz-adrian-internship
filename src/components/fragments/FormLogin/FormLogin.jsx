@@ -60,7 +60,7 @@ const FormLogin = ({
 
             {children}
 
-            <ButtonLogin>{submitLabel}</ButtonLogin>
+            <ButtonLogin type="submit">{submitLabel}</ButtonLogin>
 
             {showFooterText && (
                 <p className="text-center text-sm text-slate-500">
