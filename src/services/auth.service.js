@@ -48,3 +48,22 @@ export const register3 = async (formData) => {
 
     return data; 
 };
+
+
+
+export const login = async (formData) => {
+    const res = await fetch(`${environment.API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(formData),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+        throw new Error(data.message || "Login gagal");
+    }
+
+    return data;
+};

@@ -121,13 +121,12 @@ const RegisterAkun = ({onNext,loading} ) => {
                 />
 
                 <FormLogin
-                    variant="register"
-                    fields={registerFields}
+                    variant="login"
                     values={form}
                     onFieldChange={handleChange}
-                    onSubmit = {handleSubmit}
-                    submitLabel="Lanjut ke Info Bisnis"
-                    showFooterText={false}
+                    onSubmit={handleSubmit}
+                    submitLabel={loading ? "Memproses..." : "Masuk"}
+                    footerText="Belum punya akun?"
                 >
                     <label className="flex items-start gap-3 pt-1 text-sm text-slate-600">
                         <input type="checkbox" className="mt-1 h-4 w-4 rounded border-slate-300 text-[#0F74D7] focus:ring-[#0F74D7]" />
