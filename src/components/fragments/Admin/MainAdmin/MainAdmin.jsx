@@ -1,3 +1,5 @@
+import Button from "../../../ui/Button";
+
 const MainAdmin = (props) => {
   const { 
     children, 
@@ -6,7 +8,8 @@ const MainAdmin = (props) => {
     buttonLabel, 
     buttonClassName = "", 
     content ,
-    icon
+    icon,
+    onClick
   } = props;
 
   return (
@@ -18,9 +21,9 @@ const MainAdmin = (props) => {
         </div>
 
         {buttonLabel && (
-          <button className={buttonClassName}>
+          <Button className={buttonClassName} onClick={onClick}>
             {icon}{buttonLabel}
-          </button>
+          </Button>
         )}
       </div>
       {content}

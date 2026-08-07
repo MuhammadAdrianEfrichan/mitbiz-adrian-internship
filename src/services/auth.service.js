@@ -67,3 +67,21 @@ export const login = async (formData) => {
 
     return data;
 };
+
+export const getMe = async () => {
+    const res = await fetch(`${environment.API_URL}/auth/me`, { 
+        method: "GET",
+        credentials: "include",  
+    });
+    if (!res.ok) throw new Error("Belum login");
+    return res.json();
+};
+
+export const logout = async () => {
+    const res = await fetch(`${environment.API_URL}/auth/logout`, {
+        method: "POST",
+        credentials: "include",  
+    });
+    if (!res.ok) throw new Error("Gagal logout");
+    return res.json();
+};

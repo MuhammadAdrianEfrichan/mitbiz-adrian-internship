@@ -8,7 +8,6 @@ import {
   FiFileText,
   FiGrid,
   FiLayers,
-  FiLogOut,
   FiPackage,
   FiSettings,
   FiShoppingBag,
@@ -16,6 +15,8 @@ import {
 } from "react-icons/fi";
 import logo from '../../../../assets/image.png'
 import { useLocation, useNavigate } from "react-router-dom";
+
+import ProfileCard from "../ProfileCard";
 
 const menuGroups = [
   {
@@ -61,7 +62,7 @@ const SidebarAdmin = (props) => {
     if (!path) return false;
     return location.pathname.toLowerCase() === path.toLowerCase();
   };
-
+  
   return (
     <div className="flex h-screen bg-[#f3f4f6] text-slate-800">
         <aside className="w-70 h-screen bg-[#f5f5f5] border-r border-slate-200 flex flex-col justify-between px-4 py-5 shadow-sm">
@@ -113,7 +114,7 @@ const SidebarAdmin = (props) => {
         </nav>
       </div>
 
-      <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+      {/* <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-full bg-linear-to-br from-[#d9e9ff] to-[#b9d1f3] text-sm font-semibold text-slate-700">
@@ -125,15 +126,10 @@ const SidebarAdmin = (props) => {
             </div>
           </div>
 
-          <button
-            type="button"
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
-            aria-label="Keluar"
-          >
-            <FiLogOut size={18} />
-          </button>
+        <LogoutButton />
         </div>
-      </div>
+      </div> */}
+      <ProfileCard />
       
     </aside>
     {children}

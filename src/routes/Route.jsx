@@ -20,6 +20,7 @@ import Pengaturan from "../pages/Admin/Pengaturan/Pengaturan";
 import Riwayat from "../pages/Admin/Riwayat/Riwayat";
 import ShiftKasir from "../pages/Admin/ShiftKasir/ShiftKasir";
 import RegisterBisnis from "../pages/Register/RegisterBisnis";
+import ProtectedRoute from "./ProtectedRoute";
 
 
 const routes =[
@@ -62,52 +63,76 @@ const routes =[
     // Admin
     {
         path: '/home-admin',
-        element : <HomeAdmin />,
+        element : <ProtectedRoute>
+                    <HomeAdmin />,
+                </ProtectedRoute>
     },
 
     {
         path : '/laporan-admin',
-        element : <Laporan />
+        element : <ProtectedRoute>
+                    <Laporan />
+                    </ProtectedRoute>
     },
     {
         path : '/cabang-admin',
-        element : <Cabang />
+        element : <ProtectedRoute>
+                    <Cabang />
+                    </ProtectedRoute>
     },
     {
         path : '/kasir-admin',
-        element : <Kasir />
+        element :<ProtectedRoute>
+                    <Kasir />
+                </ProtectedRoute> 
     },
     {
         path : '/produk-admin',
-        element : <Produk />
+        element : <ProtectedRoute>
+                    <Produk />
+                    </ProtectedRoute>
     },
     {
         path : '/kategori-admin',
-        element : <Kategori />
+        element :<ProtectedRoute> 
+                <Kategori />
+                </ProtectedRoute>
     },
     {
         path : '/metode-pembayaran-admin',
-        element : <Pembayaran />
+        element : <ProtectedRoute> 
+                    <Pembayaran />
+                </ProtectedRoute>
     },
     {
         path : '/stok-admin',
-        element : <AdminStok />
+        element : <ProtectedRoute> 
+                    <AdminStok />
+                </ProtectedRoute>
     },
     {
         path : '/penyesuaian-stok-admin',
-        element : <PenyesuaianStok />
+        element : <ProtectedRoute> 
+            <PenyesuaianStok />
+            </ProtectedRoute>
     },
     {
         path : '/pengaturan-admin',
-        element : <Pengaturan />
+        element :<ProtectedRoute> 
+                    <Pengaturan />
+                </ProtectedRoute> 
     },
     {
         path : '/riwayat-transaksi-admin',
-        element : <Riwayat />
+        element :<ProtectedRoute>
+                    <Riwayat />
+                </ProtectedRoute>         
     },
     {
         path : '/shift-kasir-admin',
-        element : <ShiftKasir />
+        element :<ProtectedRoute>
+                <ShiftKasir />
+                </ProtectedRoute> 
     },
 ]
 

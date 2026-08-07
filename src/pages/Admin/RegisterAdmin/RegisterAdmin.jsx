@@ -16,11 +16,9 @@ const RegisterAdmin = ()=>{
         setError("");
         try{
             const data = await register1(formData);
-            console.log("Response step 1:", data);
             setTempUserId(data.userId ?? data.data?.userId ?? null);
             setStep(2);
         }catch{
-            console.log(err);
             setError("Tidak bisa terhubung ke server");
         }finally {
             setLoading(false);
@@ -31,12 +29,10 @@ const RegisterAdmin = ()=>{
         setError("");
         try{
             const data = await register2(formData);
-            console.log("Response step 2:", data);
             setTempUserId(data.userId ?? data.data?.userId ?? null);
             setStep(3);
             console.log(data)
         }catch(err){
-            console.log(err);
             setError(err.message||"Tidak bisa terhubung ke server");
         }finally {
             setLoading(false);
@@ -47,12 +43,9 @@ const RegisterAdmin = ()=>{
         setError("");
         try{
             const data = await register3(formData);
-            console.log("Response step 3:", data);
             setTempUserId(data.userId ?? data.data?.userId ?? null);
             setStep(4);
-            console.log(data)
         }catch(err){
-            console.log(err);
             setError(err.message||"Tidak bisa terhubung ke server");
         }finally {
             setLoading(false);

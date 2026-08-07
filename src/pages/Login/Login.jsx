@@ -7,6 +7,7 @@ import LupaPassword from '../../components/fragments/LupaPassword'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { login } from '../../services/auth.service'
+import UseAuth from '../../components/hooks/UseAuth'
 
 const Login = ()=>{
     const loginFields = [
@@ -27,6 +28,7 @@ const Login = ()=>{
 ];
 
      const navigate = useNavigate();
+     const { refetchUser } = UseAuth(); 
 
     const [form, setForm] = useState({
         email: "",
@@ -48,7 +50,7 @@ const Login = ()=>{
         return newErrors;
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e) => { 
         e.preventDefault();
         setServerError("");
 
@@ -61,11 +63,7 @@ const Login = ()=>{
         setLoading(true);
         try {
             const data = await login(form);
-            console.log("Login berhasil:", data);
-
-            if (data.token || data.data?.token) {
-                localStorage.setItem("token", data.token ?? data.data.token);
-            }
+            await refetchUser();
             navigate("/home-admin"); 
         } catch (err) {
             setServerError(err.message || "Tidak bisa terhubung ke server");
