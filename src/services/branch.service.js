@@ -1,11 +1,13 @@
 import { environment } from "../constant/environment";
 
+
 // READ — ambil semua cabang milik bisnis user yang login
 export const getBranches = async () => {
-    const res = await fetch(`${environment.API_URL}/branches`, {
+    const res = await fetch(`${environment.API_URL}/outlets`, {
         method: "GET",
         credentials: "include",
     });
+    console.log("Status:", res.status); 
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Gagal mengambil data cabang");
     return data;
@@ -13,7 +15,7 @@ export const getBranches = async () => {
 
 // CREATE — tambah cabang baru
 export const createBranch = async (branchData) => {
-    const res = await fetch(`${environment.API_URL}/branches`, {
+    const res = await fetch(`${environment.API_URL}/outlets`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -27,7 +29,7 @@ export const createBranch = async (branchData) => {
 // UPDATE — edit cabang berdasarkan id
 export const updateBranch = async (id, branchData) => {
     const res = await fetch(`${environment.API_URL}/outlets/${id}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify(branchData),

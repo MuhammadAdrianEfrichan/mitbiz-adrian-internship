@@ -1,4 +1,6 @@
 import { FiEdit2, FiEye, FiTrash2, FiBriefcase, FiCheckCircle, FiXCircle } from "react-icons/fi";
+import { deleteBranch, getBranches } from "../../../../services/branch.service";
+import { useEffect, useState } from "react";
 
 const cabangData = [
   {
@@ -27,13 +29,62 @@ const cabangData = [
   },
 ];
 
-const summaryCards = [
-  { label: "Total Cabang", value: 4, icon: FiBriefcase, accent: "border-blue-300 bg-white text-slate-800" },
-  { label: "Cabang Aktif", value: 4, icon: FiCheckCircle, accent: "border-green-300 bg-white text-slate-800" },
-  { label: "Cabang Nonaktif", value: 0, icon: FiXCircle, accent: "border-red-300 bg-white text-slate-800" },
+
+
+const CabangAdmin = ({refreshKey, onEdit}) => {
+
+
+    const [branches, setBranches] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    const totalCabang = branches.length;
+
+    const cabangAktif = branches.filter(
+    (branch) => branch.status === "ACTIVE"
+  ).length;
+
+  const cabangNonaktif = branches.filter(
+    (branch) => branch.status === "INACTIVE"
+  ).length;
+    const summaryCards = [
+  { label: "Total Cabang", value: totalCabang, icon: FiBriefcase, accent: "border-blue-300 bg-white text-slate-800" },
+  { label: "Cabang Aktif", value: cabangAktif, icon: FiCheckCircle, accent: "border-green-300 bg-white text-slate-800" },
+  { label: "Cabang Nonaktif", value: cabangNonaktif, icon: FiXCircle, accent: "border-red-300 bg-white text-slate-800" },
 ];
 
-const CabangAdmin = () => {
+     const fetchBranches = async () => {
+        setLoading(true);
+        try {
+            const data = await getBranches();
+            // console.warn("🔥 RESPONSE BRANCHES:", data);
+            // console.log("RESPONSE BRANCHES:", JSON.stringify(data, null, 2)); 
+            setBranches(data.data ?.data ?? []);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+    useEffect(() => {
+        fetchBranches();
+    }, [refreshKey]); 
+
+      const handleDelete = async (id) => {
+        if (!confirm("Yakin ingin menghapus cabang ini?")) return;
+        try {
+            await deleteBranch(id);
+            fetchBranches();
+        } catch (err) {
+            alert(err.message);
+        }
+    };
+
+    if (loading) return <p>Memuat data cabang...</p>;
+    if (error) return <p className="text-red-500">{error}</p>;
+    if (branches.length === 0) return <p className="text-slate-500">Belum ada cabang.</p>;
+
+
   return (
     <div className="space-y-6">
       <section className="grid grid-cols-3 gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -70,14 +121,14 @@ const CabangAdmin = () => {
               </tr>
             </thead>
             <tbody>
-              {cabangData.map(({ name, alamat, telepon, status }) => (
-                <tr key={name} className="border-t border-slate-200 text-sm text-slate-700">
-                  <td className="px-5 py-4">{name}</td>
-                  <td className="px-5 py-4">{alamat}</td>
-                  <td className="px-5 py-4">{telepon}</td>
+              {branches.map((branch) => (
+                <tr key={branch.id} className="border-t border-slate-200 text-sm text-slate-700">
+                  <td className="px-5 py-4">{branch.name}</td>
+                  <td className="px-5 py-4">{branch.address}</td>
+                  <td className="px-5 py-4">{branch.phone}</td>
                   <td className="px-5 py-4">
                     <span className="inline-flex rounded-md bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-                      {status}
+                      {branch.status}
                     </span>
                   </td>
                   <td className="px-5 py-4">
@@ -85,14 +136,16 @@ const CabangAdmin = () => {
                       <button
                         type="button"
                         className="flex h-9 w-9 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-blue-600 transition hover:bg-blue-100"
-                        aria-label={`Edit ${name}`}
+                        aria-label={`Edit ${branch.name}`}
+                        onClick={() => onEdit(branch)}
                       >
                         <FiEdit2 size={16} />
                       </button>
                       <button
                         type="button"
                         className="flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100"
-                        aria-label={`Hapus ${name}`}
+                        aria-label={`Hapus ${branch.name}`}
+                        onClick={() => handleDelete(branch.id)}
                       >
                         <FiTrash2 size={16} />
                       </button>
