@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+@theme{
+    --colorbg-btm : #04284D;
+    --colorbg-top :#0A5CB3;
+}
+
+*{
+    font-family: "Plus Jakarta Sans", sans-serif;
+}
