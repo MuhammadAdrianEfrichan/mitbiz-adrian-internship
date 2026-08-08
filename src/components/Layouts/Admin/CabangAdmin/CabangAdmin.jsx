@@ -80,6 +80,7 @@ const CabangAdmin = ({refreshKey, onEdit}) => {
         }
     };
 
+    // redesain loading dan juga pesan error
     if (loading) return <p>Memuat data cabang...</p>;
     if (error) return <p className="text-red-500">{error}</p>;
     if (branches.length === 0) return <p className="text-slate-500">Belum ada cabang.</p>;
