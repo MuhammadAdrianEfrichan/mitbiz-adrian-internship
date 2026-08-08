@@ -73,8 +73,7 @@ const Login = ()=>{
     };
     return(
         <ContentLogin>
-            <LeftCopy title='Sistem Kasir Multi Cabang' />
-            <LeftCopy />
+            <LeftCopy title='Sistem Kasir Multi Cabang Lebih Terkontrol' />
             <LoginCard >
                 <TagLine />
                 {serverError && (

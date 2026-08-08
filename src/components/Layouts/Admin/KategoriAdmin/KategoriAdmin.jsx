@@ -7,7 +7,9 @@ const kategoriData = [
   { name: "Alat Tulis", count: "2 produk", status: "Aktif" },
 ];
 
-const KategoriAdmin = () => {
+const KategoriAdmin = ({refreshKey, onEdit}) => {
+
+  
   return (
     <div className="space-y-5">
     

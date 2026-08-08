@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { FiEdit2, FiSearch, FiTrash2, FiUsers, FiPlus } from "react-icons/fi";
+import { deleteKasir, getKasir } from "../../../../services/kasir.service";
 
 const roles = [
   {
@@ -13,14 +15,56 @@ const roles = [
   },
 ];
 
-const kasirData = [
-  { nama: "Budi Santoso", username: "kasir1", cabang: "Cabang Jakarta Pusat" },
-];
 
-const KasirAdmin = () => {
+const KasirAdmin = ({refreshKey, onEdit, branches=[]}) => {
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    console.log("Tipe branches:", typeof branches, "isArray:", Array.isArray(branches), "value:", branches);
+     console.log("BRANCHES PROP DI KASIRADMIN:", branches); 
+
+    const totalKasir = users.length;
+
+   const fetchUsers = async () => {
+        setLoading(true);
+        try {
+            const data = await getKasir();
+            console.warn("🔥 RESPONSE BRANCHES:", data);
+            console.log("RESPONSE BRANCHES:", JSON.stringify(data, null, 2));
+            const allUsers = Array.isArray(data.data?.data)
+                ? data.data.data
+                : Array.isArray(data.data)
+                ? data.data
+                : [];
+            const cashiers = allUsers.filter((u) => u.role === "STAFF");
+            setUsers(cashiers);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchUsers();
+    }, [refreshKey]);
+
+    const handleDelete = async (id) => {
+        if (!confirm("Yakin ingin menghapus kasir ini?")) return;
+        try {
+            await deleteKasir(id);
+            fetchUsers();
+        } catch (err) {
+            alert(err.message);
+        }
+    };
+
+    //  if (loading) return <p>Memuat data kasir...</p>;
+    // if (error) return <p className="text-red-500">{error}</p>;
+    
   return (
     <div className="flex min-h-[calc(100vh-120px)] gap-7 px-2 py-2">
-      <aside className="w-[300px] rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <aside className="w-75 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="mb-5 flex items-center gap-3">
         </div>
 
@@ -72,17 +116,10 @@ const KasirAdmin = () => {
         <div className="flex items-center gap-3">
         <div className="mb-5">
         <h2 className="text-[1.05rem] font-semibold text-slate-800">Role - Kasir</h2>
-        <p className="text-sm text-slate-500">2 pengguna dengan role ini</p>
+        <p className="text-sm text-slate-500">{totalKasir} pengguna dengan role ini</p>
         </div>
         </div>
 
-        <button
-            type="button"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#1c86ef] px-4 py-3 text-base font-medium text-white shadow-sm transition hover:bg-[#1779dc]"
-        >
-            <FiPlus size={18} />
-            Tambah Kasir
-          </button>
         </div>
 
        
@@ -112,24 +149,27 @@ const KasirAdmin = () => {
               </tr>
             </thead>
             <tbody>
-              {kasirData.map(({ nama, username, cabang }) => (
-                <tr key={username} className="border-t border-slate-200 bg-white text-sm text-slate-700">
-                  <td className="px-4 py-4">{nama}</td>
-                  <td className="px-4 py-4">{username}</td>
-                  <td className="px-4 py-4">{cabang}</td>
+              
+              {users.map((user) => (
+                <tr key={user.id} className="border-t border-slate-200 bg-white text-sm text-slate-700">
+                  <td className="px-4 py-4">{user.name}</td>
+                  <td className="px-4 py-4">{user.userName}</td>
+                  <td className="px-4 py-4">{(branches ?? []).find((b) => b.id === user.outletId)?.name ?? "-"}</td>
                   <td className="px-4 py-4">
                     <div className="flex items-center justify-center gap-3">
                       <button
                         type="button"
                         className="flex h-9 w-9 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-blue-600 transition hover:bg-blue-100"
-                        aria-label={`Edit ${nama}`}
+                        aria-label={`Edit ${user.name}`}
+                        onClick={() => onEdit(user)}
                       >
                         <FiEdit2 size={16} />
                       </button>
                       <button
                         type="button"
                         className="flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100"
-                        aria-label={`Hapus ${nama}`}
+                        aria-label={`Hapus ${user.id}`}
+                        onClick={() => handleDelete(user.id)}
                       >
                         <FiTrash2 size={16} />
                       </button>
