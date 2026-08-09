@@ -4,7 +4,7 @@ import LoginCard from '../../components/fragments/LoginCard'
 import ContentLogin from '../../components/fragments/ContentLogin'
 import TagLine from '../../components/fragments/TagLine'
 import LupaPassword from '../../components/fragments/LupaPassword'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { login } from '../../services/auth.service'
 import UseAuth from '../../components/hooks/UseAuth'
@@ -13,8 +13,8 @@ const Login = ()=>{
     const loginFields = [
     {
         label: 'Email',
-        name: 'email',
-        type: 'email',
+        name: 'identifier',
+        type: 'text',
         placeholder: 'Masukkan email Anda',
         required: true,
     },
@@ -31,7 +31,7 @@ const Login = ()=>{
      const { refetchUser } = UseAuth(); 
 
     const [form, setForm] = useState({
-        email: "",
+        identifier: "",
         password: "",
     });
     const [errors, setErrors] = useState({});
@@ -45,7 +45,7 @@ const Login = ()=>{
 
     const validate = () => {
         const newErrors = {};
-        if (!form.email.includes("@")) newErrors.email = "Email tidak valid";
+        if (!form.identifier) newErrors.identifier = "Email tidak valid";
         if (!form.password) newErrors.password = "Password wajib diisi";
         return newErrors;
     };
@@ -90,7 +90,9 @@ const Login = ()=>{
                 >
                     <LupaPassword />
 
-                    {errors.email && <p className="text-red-500 text-xs">{errors.email}</p>}
+                    <Link to='/register-admin' className='text-xl text-blue-600 flex justify-end'>Register</Link>
+
+                    {errors.identifier && <p className="text-red-500 text-xs">{errors.email}</p>}
                     {errors.password && <p className="text-red-500 text-xs">{errors.password}</p>}
                 </FormLogin>
             </LoginCard>

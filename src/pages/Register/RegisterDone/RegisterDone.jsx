@@ -6,19 +6,36 @@ import ButtonLogin from '../../../components/fragments/ButtonLogin';
 
 const steps = ['Akun', 'Bisnis', 'Outlet'];
 
-const RegisterDone = () => {
+const RegisterDone = ({ status = 'success', message = '' }) => {
     const navigate = useNavigate();
     const { state } = useLocation();
-    const hasError = state?.status === 'error' || Boolean(state?.error);
+    const requestStatus = status || state?.status || 'success';
+    const hasError = requestStatus === 'error' || Boolean(state?.error);
+    const isPending = requestStatus === 'pending';
 
-    const title = hasError ? 'Pendaftaran Gagal' : 'Akun Berhasil Dibuat!';
+    const title = hasError
+        ? 'Pendaftaran Gagal'
+        : isPending
+        ? 'Permintaan Outlet Sedang Diproses'
+        : 'Akun Berhasil Dibuat!';
+
     const description = hasError
-        ? state?.error || 'Terjadi kesalahan saat membuat akun. Silakan coba lagi atau hubungi admin.'
+        ? message || state?.error || 'Terjadi kesalahan saat membuat akun. Silakan coba lagi atau hubungi admin.'
+        : isPending
+        ? 'Registrasi outlet Anda sedang menunggu persetujuan backend. Mohon tunggu konfirmasi lebih lanjut.'
         : 'Selamat datang di Mitbiz POS. Bisnis Anda sudah siap untuk mulai dengan cekmail untuk verifikasi akun.';
-    const buttonText = 'Kembali ke Login';
-    const iconText = hasError ? '!' : '✓';
-    const iconClasses = hasError ? 'bg-[#FEE2E2] text-[#DC2626]' : 'bg-[#DFF7E8] text-[#2FBF71]';
-    const titleClasses = hasError ? 'text-3xl font-semibold text-[#DC2626]' : 'text-3xl font-semibold text-slate-800';
+
+    const iconText = hasError ? '!' : isPending ? '⏳' : '✓';
+    const iconClasses = hasError
+        ? 'bg-[#FEE2E2] text-[#DC2626]'
+        : isPending
+        ? 'bg-[#E0F2FE] text-[#0F74D7]'
+        : 'bg-[#DFF7E8] text-[#2FBF71]';
+    const titleClasses = hasError
+        ? 'text-3xl font-semibold text-[#DC2626]'
+        : isPending
+        ? 'text-3xl font-semibold text-slate-800'
+        : 'text-3xl font-semibold text-slate-800';
 
     return (
         <ContentLogin>
@@ -78,7 +95,7 @@ const RegisterDone = () => {
                             className="max-w-105"
                             onClick={() => navigate('/')}
                         >
-                            {buttonText}
+                            Kembali ke Login
                         </ButtonLogin>
                     </div>
                 </div>

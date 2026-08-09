@@ -5,11 +5,22 @@ import RegisterOutlet from "../../Register/RegisterOutlet";
 import RegisterBisnis from "../../Register/RegisterBisnis";
 import RegisterDone from "../../Register/RegisterDone";
 
+const getRequestStatus = (payload) => {
+    const status = payload?.status ?? payload?.data?.status ?? payload?.approvalStatus ?? payload?.data?.approvalStatus ?? payload?.result?.status;
+
+    if (typeof status === "string") {
+        return status.toLowerCase();
+    }
+
+    return "success";
+};
+
 const RegisterAdmin = ()=>{
     const [step, setStep] = useState(1);
     const [tempUserId, setTempUserId] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [pendingApproval, setPendingApproval] = useState(false);
 
     const handleStep1 = async (formData) =>{
         setLoading(true);
@@ -41,12 +52,23 @@ const RegisterAdmin = ()=>{
     const handleStep3 = async (formData) =>{
         setLoading(true);
         setError("");
+        setPendingApproval(false);
         try{
             const data = await register3(formData);
             setTempUserId(data.userId ?? data.data?.userId ?? null);
+
+            const requestStatus = getRequestStatus(data);
+            const isPending = ["pending", "waiting_approval", "submitted", "review"].includes(requestStatus);
+
+            if (isPending) {
+                setPendingApproval(true);
+                setStep(4);
+                return;
+            }
+
             setStep(4);
         }catch(err){
-            setError(err.message||"Tidak bisa terhubung ke server");
+            setError(err.message || "Registrasi outlet gagal");
         }finally {
             setLoading(false);
         }
@@ -59,7 +81,7 @@ const RegisterAdmin = ()=>{
     {step === 1 && <RegisterAkun onNext={handleStep1} loading={loading} />}
     {step === 2 && <RegisterBisnis onNext={handleStep2} loading={loading} />}
     {step === 3 && <RegisterOutlet onNext={handleStep3} loading={loading} />}
-    {step === 4 && <RegisterDone />}
+    {step === 4 && <RegisterDone status={pendingApproval ? "pending" : "success"} />}
     </div>
     )
 }

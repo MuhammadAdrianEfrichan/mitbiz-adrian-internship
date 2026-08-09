@@ -57,8 +57,8 @@ const CabangAdmin = ({refreshKey, onEdit}) => {
         setLoading(true);
         try {
             const data = await getBranches();
-            // console.warn("🔥 RESPONSE BRANCHES:", data);
-            // console.log("RESPONSE BRANCHES:", JSON.stringify(data, null, 2)); 
+            console.warn("🔥 RESPONSE BRANCHES:", data);
+            console.log("RESPONSE BRANCHES:", JSON.stringify(data, null, 2)); 
             setBranches(data.data ?.data ?? []);
         } catch (err) {
             setError(err.message);

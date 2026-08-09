@@ -29,8 +29,8 @@ const KasirAdmin = ({refreshKey, onEdit, branches=[]}) => {
         setLoading(true);
         try {
             const data = await getKasir();
-            console.warn("🔥 RESPONSE BRANCHES:", data);
-            console.log("RESPONSE BRANCHES:", JSON.stringify(data, null, 2));
+            // console.warn("🔥 RESPONSE BRANCHES:", data);
+            // console.log("RESPONSE BRANCHES:", JSON.stringify(data, null, 2));
             const allUsers = Array.isArray(data.data?.data)
                 ? data.data.data
                 : Array.isArray(data.data)

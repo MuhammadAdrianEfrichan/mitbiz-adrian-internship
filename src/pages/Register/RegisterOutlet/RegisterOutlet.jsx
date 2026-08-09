@@ -8,38 +8,43 @@ import { useState } from 'react';
 
 const steps = ['Akun', 'Bisnis', 'Outlet'];
 
-const RegisterOutlet = ({onNext,loading}) => {
+const RegisterOutlet = ({onNext, loading}) => {
     const [form, setForm] = useState({
-                outletName : "",
-                outletAddress : "",
-                outletPhone: "",
-            });
-            const [errors, setErrors] = useState({});
-        
-            const handleChange = (e) =>{
-                const {name, value } = e.target;
-                setForm((prev)=> ({...prev, [name] : value}));
-            };
-        
-                const validate = () => {
-                    const newErrors = {};
-                    if (!form.outletName.trim()) newErrors.outletName = "Nama outlet wajib diisi";
-                    if (!form.outletAddress.trim()) newErrors.outletAddress = "outletAddress Wajib diisi";
-                    if (!form.outletPhone.includes('+62')) newErrors.outletPhone = "Nomor telpon outlet wajib diisi";
-                    return newErrors;
-                };
-                const handleSubmit = (e) =>{
-                    e.preventDefault();
-                    console.log(form);
-                    const validationErrors = validate();
-                     console.log("VALIDATION ERRORS:", validationErrors);
-                    if (Object.keys(validationErrors).length > 0){
-                        setErrors(validationErrors);
-                        return;
-                    }
-                    setErrors({});
-                    onNext(form);
-                }
+        outletName: '',
+        outletAddress: '',
+        outletPhone: '',
+    });
+    const [errors, setErrors] = useState({});
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setForm((prev) => ({ ...prev, [name]: value }));
+        setErrors((prev) => ({ ...prev, [name]: '' }));
+    };
+
+    const validate = () => {
+        const newErrors = {};
+        if (!form.outletName.trim()) newErrors.outletName = 'Nama outlet wajib diisi';
+        if (!form.outletAddress.trim()) newErrors.outletAddress = 'Alamat outlet wajib diisi';
+        if (!form.outletPhone.trim() || !form.outletPhone.includes('+62')) newErrors.outletPhone = 'Nomor telepon outlet wajib diisi dengan format +62';
+        return newErrors;
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+        if (loading) return;
+
+        const validationErrors = validate();
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            return;
+        }
+
+        setErrors({});
+        onNext(form);
+    };
+
     return (
         <ContentLogin>
             <LeftCopy
@@ -104,13 +109,18 @@ const RegisterOutlet = ({onNext,loading}) => {
                         <label className="block text-base font-medium text-slate-700">
                             Nama Outlet <span className="text-red-500">*</span>
                         </label>
-                        <InputLogin name="outletName" placeholder="Contoh: Cabang Utama" value={form.outletName}
-                        onChange={handleChange}/>
+                        <InputLogin
+                            name="outletName"
+                            placeholder="Contoh: Cabang Utama"
+                            value={form.outletName}
+                            onChange={handleChange}
+                        />
+                        {errors.outletName && <p className="text-sm text-red-500">{errors.outletName}</p>}
                     </div>
 
                     <div className="space-y-2">
                         <label className="block text-base font-medium text-slate-700">
-                            outletAddress Outlet
+                            Alamat Outlet <span className="text-red-500">*</span>
                         </label>
                         <InputLogin
                             name="outletAddress"
@@ -118,11 +128,12 @@ const RegisterOutlet = ({onNext,loading}) => {
                             value={form.outletAddress}
                             onChange={handleChange}
                         />
+                        {errors.outletAddress && <p className="text-sm text-red-500">{errors.outletAddress}</p>}
                     </div>
 
                     <div className="space-y-2">
                         <label className="block text-base font-medium text-slate-700">
-                            Nomor Telepon Outlet
+                            Nomor Telepon Outlet <span className="text-red-500">*</span>
                         </label>
                         <InputLogin
                             name="outletPhone"
@@ -130,6 +141,7 @@ const RegisterOutlet = ({onNext,loading}) => {
                             value={form.outletPhone}
                             onChange={handleChange}
                         />
+                        {errors.outletPhone && <p className="text-sm text-red-500">{errors.outletPhone}</p>}
                     </div>
 
                     <div className="flex items-center justify-between gap-4 pt-2">
@@ -140,7 +152,14 @@ const RegisterOutlet = ({onNext,loading}) => {
                             <span className="mr-2">&lt;</span> Kembali
                         </button>
 
-                        <ButtonLogin className="max-w-50" type='submit'>Buat Akun</ButtonLogin>
+                        <ButtonLogin className="max-w-50" type='submit' disabled={loading}>
+                            {loading ? (
+                                <span className="inline-flex items-center justify-center gap-2">
+                                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/80 border-t-transparent" />
+                                    Mengirim...
+                                </span>
+                            ) : 'Buat Akun'}
+                        </ButtonLogin>
                     </div>
                 </form>
             </LoginCard>
