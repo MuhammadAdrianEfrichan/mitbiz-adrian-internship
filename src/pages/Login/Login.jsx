@@ -64,7 +64,13 @@ const Login = ()=>{
         try {
             const data = await login(form);
             await refetchUser();
-            navigate("/home-admin"); 
+        const role = data.data?.user?.role ?? data.user?.role;
+        if (role === "STAFF") {
+            navigate("/dasboard-kasir");
+        }  
+        if (role === "ADMIN"){
+            navigate("/home-admin");
+        }
         } catch (err) {
             setServerError(err.message || "Tidak bisa terhubung ke server");
         } finally {

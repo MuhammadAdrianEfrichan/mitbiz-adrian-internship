@@ -1,13 +1,50 @@
+import { useEffect, useState } from "react";
 import { FiEdit2, FiPackage, FiSearch, FiTrash2 } from "react-icons/fi";
+import { deleteProduct, getProduct } from "../../../../services/product.service";
 
-const products = [
-  { sku: "FD-002", nama: "Mie Goreng", kategori: "Makanan", harga: "Rp 25.000", diskon: "10%", status: "Aktif" },
-  { sku: "DR-001", nama: "Es Teh Manis", kategori: "Minuman", harga: "Rp 5.000", diskon: "-", status: "Aktif" },
-  { sku: "DR-002", nama: "Es Jeruk", kategori: "Minuman", harga: "Rp 7.000", diskon: "-", status: "Aktif" },
-  { sku: "SN-001", nama: "Keripik Kentang", kategori: "Snack", harga: "Rp 10.000", diskon: "-", status: "Aktif" },
-];
 
-const ProdukAdmin = () => {
+
+const ProdukAdmin = ({refreshKey, onEdit, category=[]}) => {
+
+  const [product, setProduct] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const fetchProduct = async () => {
+
+
+
+          setLoading(true);
+          try {
+              const data = await getProduct();
+              // console.warn("🔥 RESPONSE Product:", data);
+              console.log("RESPONSE Product:", JSON.stringify(data, null, 2)); 
+              setProduct(data.data ?? []);
+          } catch (err) {
+              setError(err.message);
+          } finally {
+              setLoading(false);
+          }
+      };
+      useEffect(() => {
+          fetchProduct();
+      }, [refreshKey]); 
+
+      const handleDelete = async (id) => {
+              if (!confirm("Yakin ingin menghapus cabang ini?")) return;
+              try {
+                  await deleteProduct(id);
+                  fetchProduct();
+              } catch (err) {
+                  alert(err.message);
+              }
+          };
+
+    if (loading) return <p>Memuat data cabang...</p>;
+    if (error) return <p className="text-red-500">{error}</p>;
+    if (product.length === 0) return <p className="text-slate-500">Belum product.</p>;
+  
+
   return (
     <div className="space-y-6">
 
@@ -19,7 +56,7 @@ const ProdukAdmin = () => {
               <FiPackage size={16} />
             </span>
           </div>
-          <div className="text-[2.2rem] font-bold leading-none text-slate-800">5</div>
+          <div className="text-[2.2rem] font-bold leading-none text-slate-800">{product.length}</div>
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -52,7 +89,8 @@ const ProdukAdmin = () => {
           </label>
 
           <select
-            className="min-w-[180px] rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-700 focus:border-blue-500 focus:outline-none"
+            className="min-w-45
+            rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-700 focus:border-blue-500 focus:outline-none"
             defaultValue=""
           >
             <option value="" disabled>Semua kategori</option>
@@ -71,51 +109,48 @@ const ProdukAdmin = () => {
                 <th className="px-5 py-3">Kategori</th>
                 <th className="px-5 py-3">Harga</th>
                 <th className="px-5 py-3">Diskon</th>
-                <th className="px-5 py-3">Status</th>
                 <th className="px-5 py-3 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody>
-              {products.map(({ sku, nama, kategori, harga, diskon, status }) => (
-                <tr key={sku} className="border-t border-slate-200 text-sm text-slate-700">
-                  <td className="px-5 py-4">{sku}</td>
-                  <td className="px-5 py-4">{nama}</td>
-                  <td className="px-5 py-4">{kategori}</td>
+              {product.map((item) => (
+                <tr key={item.id} className="border-t border-slate-200 text-sm text-slate-700">
+                  <td className="px-5 py-4">{item.sku}</td>
+                  <td className="px-5 py-4">{item.name}</td>
+                  <td className="px-5 py-4">{item.category.name}</td>
                   <td className="px-5 py-4">
                     <div>
-                      {diskon !== "-" && (
-                        <p className="text-xs text-slate-400 line-through">Rp 25.000</p>
+                      {item.price !== "-" && (
+                        <p className="text-xs text-slate-400 line-through">{item.price}</p>
                       )}
-                      <p className="font-medium text-slate-700">{harga}</p>
+                      <p className="font-medium text-slate-700">Rp.{item.price - (item.price * item.discount / 100)}</p>
                     </div>
                   </td>
                   <td className="px-5 py-4">
-                    {diskon === "-" ? (
+                    {item.discount === "-" ? (
                       <span className="text-slate-400">-</span>
                     ) : (
                       <span className="inline-flex rounded-md bg-red-100 px-2 py-1 text-xs font-semibold text-red-600">
-                        {diskon}
+                        {item.discount}%
                       </span>
                     )}
                   </td>
-                  <td className="px-5 py-4">
-                    <span className="inline-flex rounded-md bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-                      {status}
-                    </span>
-                  </td>
+                
                   <td className="px-5 py-4">
                     <div className="flex items-center justify-center gap-3">
                       <button
                         type="button"
                         className="flex h-9 w-9 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-blue-600 transition hover:bg-blue-100"
-                        aria-label={`Edit ${nama}`}
+                        aria-label={`Edit ${item.id}`}
+                        onClick={() => onEdit(product)}
                       >
                         <FiEdit2 size={16} />
                       </button>
                       <button
                         type="button"
                         className="flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100"
-                        aria-label={`Hapus ${nama}`}
+                        aria-label={`Hapus ${item.id}`}
+                        onClick={() => handleDelete(item.id)}
                       >
                         <FiTrash2 size={16} />
                       </button>

@@ -1,9 +1,8 @@
 import { environment } from "../constant/environment";
 
 
-// READ — ambil semua cabang milik bisnis user yang login
-export const getCategory = async () => {
-    const res = await fetch(`${environment.API_URL}/categories`, {
+export const getProduct = async () => {
+    const res = await fetch(`${environment.API_URL}/products`, {
         method: "GET",
         credentials: "include",
     });
@@ -14,12 +13,12 @@ export const getCategory = async () => {
 };
 
 // CREATE — tambah cabang baru
-export const createCategory = async (categoryData) => {
-    const res = await fetch(`${environment.API_URL}/categories`, {
+export const createProduct = async (productData) => {
+    const res = await fetch(`${environment.API_URL}/products`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(categoryData),
+        body: JSON.stringify(productData),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Gagal menambah cabang");
@@ -27,12 +26,12 @@ export const createCategory = async (categoryData) => {
 };
 
 // UPDATE — edit cabang berdasarkan id
-export const updateCategory = async (id, categoryData) => {
-    const res = await fetch(`${environment.API_URL}/categories/${id}`, {
+export const updateProduct = async (id, productData) => {
+    const res = await fetch(`${environment.API_URL}/products/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(categoryData),
+        body: JSON.stringify(productData),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Gagal mengubah cabang");
@@ -40,8 +39,8 @@ export const updateCategory = async (id, categoryData) => {
 };
 
 // DELETE — hapus cabang berdasarkan id
-export const deleteCategory = async (id) => {
-    const res = await fetch(`${environment.API_URL}/categories/${id}`, {
+export const deleteProduct = async (id) => {
+    const res = await fetch(`${environment.API_URL}/products/${id}`, {
         method: "DELETE",
         credentials: "include",
     });

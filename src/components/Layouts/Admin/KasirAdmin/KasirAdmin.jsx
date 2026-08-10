@@ -20,8 +20,8 @@ const KasirAdmin = ({refreshKey, onEdit, branches=[]}) => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    console.log("Tipe branches:", typeof branches, "isArray:", Array.isArray(branches), "value:", branches);
-     console.log("BRANCHES PROP DI KASIRADMIN:", branches); 
+    // console.log("Tipe branches:", typeof branches, "isArray:", Array.isArray(branches), "value:", branches);
+  //  console.log("BRANCHES PROP DI KASIRADMIN:", branches); 
 
     const totalKasir = users.length;
 
@@ -29,8 +29,8 @@ const KasirAdmin = ({refreshKey, onEdit, branches=[]}) => {
         setLoading(true);
         try {
             const data = await getKasir();
-            // console.warn("🔥 RESPONSE BRANCHES:", data);
-            // console.log("RESPONSE BRANCHES:", JSON.stringify(data, null, 2));
+            console.warn("🔥 RESPONSE BRANCHES:", data);
+            console.log("RESPONSE BRANCHES:", JSON.stringify(data, null, 2));
             const allUsers = Array.isArray(data.data?.data)
                 ? data.data.data
                 : Array.isArray(data.data)
@@ -153,7 +153,7 @@ const KasirAdmin = ({refreshKey, onEdit, branches=[]}) => {
               {users.map((user) => (
                 <tr key={user.id} className="border-t border-slate-200 bg-white text-sm text-slate-700">
                   <td className="px-4 py-4">{user.name}</td>
-                  <td className="px-4 py-4">{user.userName}</td>
+                  <td className="px-4 py-4">{user.username}</td>
                   <td className="px-4 py-4">{(branches ?? []).find((b) => b.id === user.outletId)?.name ?? "-"}</td>
                   <td className="px-4 py-4">
                     <div className="flex items-center justify-center gap-3">

@@ -2,37 +2,10 @@ import { FiEdit2, FiEye, FiTrash2, FiBriefcase, FiCheckCircle, FiXCircle } from 
 import { deleteBranch, getBranches } from "../../../../services/branch.service";
 import { useEffect, useState } from "react";
 
-const cabangData = [
-  {
-    name: "Cabang Jakarta Pusat",
-    alamat: "Jl. Sudirman No. 123, Jakarta Pusat",
-    telepon: "021-12345678",
-    status: "Aktif",
-  },
-  {
-    name: "Cabang Jakarta Selatan",
-    alamat: "Jl. Gatot Subroto No. 456, Jakarta Selatan",
-    telepon: "021-87654321",
-    status: "Aktif",
-  },
-  {
-    name: "Cabang Tangerang",
-    alamat: "Jl. BSD Raya No. 789, Tangerang",
-    telepon: "021-99887766",
-    status: "Aktif",
-  },
-  {
-    name: "Cabang Padang",
-    alamat: "Jl. Dr Sutomo No. 123, Padang Barat",
-    telepon: "021-22564786",
-    status: "Aktif",
-  },
-];
-
 
 
 const CabangAdmin = ({refreshKey, onEdit}) => {
-
+  
 
     const [branches, setBranches] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -57,8 +30,8 @@ const CabangAdmin = ({refreshKey, onEdit}) => {
         setLoading(true);
         try {
             const data = await getBranches();
-            console.warn("🔥 RESPONSE BRANCHES:", data);
-            console.log("RESPONSE BRANCHES:", JSON.stringify(data, null, 2)); 
+            // console.warn("🔥 RESPONSE BRANCHES:", data);
+            // console.log("RESPONSE BRANCHES:", JSON.stringify(data, null, 2)); 
             setBranches(data.data ?.data ?? []);
         } catch (err) {
             setError(err.message);

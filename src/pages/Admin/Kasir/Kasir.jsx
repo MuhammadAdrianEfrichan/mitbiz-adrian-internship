@@ -8,7 +8,7 @@ import { getBranches } from "../../../services/branch.service";
 
 const initialForm = {
     name: "",
-    userName: "",
+    username: "",
     email: "",
     password: "",
     outletId : "",
@@ -22,10 +22,10 @@ const Kasir = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
     const [branches, setBranches] = useState([]);
-     const [branchesLoading, setBranchesLoading] = useState(true); 
+    const [branchesLoading, setBranchesLoading] = useState(true); 
 
 
-     const fetchCabang = async () => {
+    const fetchCabang = async () => {
       setBranchesLoading(true);
         try {
             const data = await getBranches();
@@ -62,7 +62,7 @@ const Kasir = () => {
         setEditingUser(user);
         setFormData({
             name: user.name ?? "",
-            userName: user.userName ?? "",
+            username: user.username ?? "",
             email: user.email ?? "",
             password: "", 
             outletId: user.outletId ?? "",
@@ -77,7 +77,6 @@ const Kasir = () => {
 
 
     const handleSaveSuccess = () => {
-    setBranches(false);
     resetForm();
     setRefreshKey((prev) => prev + 1);
   };
@@ -94,7 +93,7 @@ const Kasir = () => {
             if (editingUser) {
                 const payload = { 
                   name: formData.name, 
-                  userName: formData.userName, 
+                  username: formData.username, 
                   email: formData.email,
                   outletId: formData.outletId,
                 };
@@ -174,11 +173,11 @@ const Kasir = () => {
                             />
                           </label>
                           <label className="block text-sm font-medium text-slate-700">
-                            <span className="mb-2 block">UserName</span>
+                            <span className="mb-2 block">username</span>
                             <input
                               type="text"
-                              name="userName"
-                              value={formData.userName}
+                              name="username"
+                              value={formData.username}
                               onChange={handleChange}
                               required
                               className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-[#1c86ef] focus:bg-white"

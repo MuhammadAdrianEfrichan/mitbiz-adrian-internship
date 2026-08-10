@@ -29,7 +29,6 @@ export const register2 = async (formData) => {
     if (!res.ok) {
         throw new Error(data.message || "Registrasi akun gagal");
     }
-
     return data; 
 };
 

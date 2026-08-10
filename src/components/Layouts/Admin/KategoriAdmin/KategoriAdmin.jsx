@@ -1,13 +1,47 @@
 import { FiEdit2, FiSearch, FiTrash2 } from "react-icons/fi";
+import { deleteCategory, getCategory } from "../../../../services/category.service";
+import { useEffect, useState } from "react";
 
-const kategoriData = [
-  { name: "Makanan", count: "1 produk", status: "Aktif" },
-  { name: "Minuman", count: "2 produk", status: "Aktif" },
-  { name: "Snack", count: "2 produk", status: "Aktif" },
-  { name: "Alat Tulis", count: "2 produk", status: "Aktif" },
-];
+
 
 const KategoriAdmin = ({refreshKey, onEdit}) => {
+        const [categories, setCategories] = useState([]);
+        const [loading, setLoading] = useState(true);
+        const [error, setError] = useState("");
+
+
+         const fetchCategories = async () => {
+                setLoading(true);
+                try {
+                    const data = await getCategory();
+                    // console.warn("🔥 RESPONSE BRANCHES:", data);
+                    // console.log("RESPONSE BRANCHES:", JSON.stringify(data, null, 2)); 
+                    setCategories(data.data ?? []);
+                } catch (err) {
+                    setError(err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+             useEffect(() => {
+                    fetchCategories();
+                }, [refreshKey]);
+
+
+            const handleDelete = async (id) => {
+                    if (!confirm("Yakin ingin menghapus kategori ini?")) return;
+                    try {
+                        await deleteCategory(id);
+                        fetchCategories();
+                    } catch (err) {
+                        alert(err.message);
+                    }
+                };
+
+    if (loading) return <p>Memuat data cabang...</p>;
+    if (error) return <p className="text-red-500">{error}</p>;
+    if (categories.length === 0) return <p className="text-slate-500">Belum kategori.</p>;
 
   
   return (
@@ -44,13 +78,13 @@ const KategoriAdmin = ({refreshKey, onEdit}) => {
               </tr>
             </thead>
             <tbody>
-              {kategoriData.map(({ name, count, status }) => (
-                <tr key={name} className="border-t border-slate-200 text-sm text-slate-700">
-                  <td className="px-5 py-4">{name}</td>
-                  <td className="px-5 py-4">{count}</td>
+              {categories.map((category) => (
+                <tr key={category.id} className="border-t border-slate-200 text-sm text-slate-700">
+                  <td className="px-5 py-4">{category.name}</td>
+                  <td className="px-5 py-4">{category.total}</td>
                   <td className="px-5 py-4">
                     <span className="inline-flex rounded-md bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-                      {status}
+                      {category.status}
                     </span>
                   </td>
                   <td className="px-5 py-4">
@@ -58,14 +92,16 @@ const KategoriAdmin = ({refreshKey, onEdit}) => {
                       <button
                         type="button"
                         className="flex h-9 w-9 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-blue-600 transition hover:bg-blue-100"
-                        aria-label={`Edit ${name}`}
+                        aria-label={`Edit ${category.id}`}
+                        onClick={() => onEdit(category)}
                       >
                         <FiEdit2 size={16} />
                       </button>
                       <button
                         type="button"
                         className="flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100"
-                        aria-label={`Hapus ${name}`}
+                        aria-label={`Hapus ${category.id}`}
+                        onClick={() => handleDelete(category.id)}
                       >
                         <FiTrash2 size={16} />
                       </button>

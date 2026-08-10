@@ -1,12 +1,13 @@
 import SidebarAdmin from "../../../components/fragments/Admin/SidebarAdmin";
 import MainAdmin from "../../../components/fragments/Admin/MainAdmin";
 import KategoriAdmin from "../../../components/Layouts/Admin/KategoriAdmin";
-import {FiPlus} from "react-icons/fi";
+import {FiPlus, FiX} from "react-icons/fi";
 import { useState } from "react";
+import { createCategory, updateCategory } from "../../../services/category.service";
 
 const initialForm = {
-  categoryName: "",
-  username: "",
+  name: "",
+  total: "",
   status: "",
 };
 
@@ -19,7 +20,7 @@ const Kategori = () => {
 
     const resetForm = () => {
     setFormData(initialForm);
-    setEditingBranch(null);
+    setEditingCategory(null);
     };
 
     const openCreateCategory = () => {
@@ -30,8 +31,8 @@ const Kategori = () => {
   const openEditCategory = (category) => {
     setEditingCategory(category);
     setFormData({
-      categoryName: category.name ?? "",
-      username: category.username ?? "",
+      name: category.name ?? "",
+      total: category.total ?? "",
       status: category.status ?? "ACTIVE",
     });
     setShowCategory(true);
@@ -59,8 +60,8 @@ const Kategori = () => {
   
       try {
         const payload = {
-          categoryName: formData.categoryName,
-          username: formData.username,
+          name: formData.name,
+          total: formData.total,
           
         };
         console.log("PAYLOAD YANG DIKIRIM:", payload); 
@@ -93,8 +94,8 @@ const Kategori = () => {
         subtitle="Kelola kategori produk"
         content={<KategoriAdmin refreshKey={refreshKey} onEdit={openEditCategory} />}
           icon = {<FiPlus size={18} />}
-                buttonClassName = "inline-flex items-center gap-2 rounded-xl bg-[#1c86ef] px-4 py-3 text-base font-medium text-white shadow-sm transition hover:bg-[#1779dc]"
-                buttonLabel = "Tambah Produk"
+                buttonClassName = "inline-flex items-center gap-2 rounded-xl bg-[#1c86ef] px-4 py-3 text-base font-medium text-white shadow-sm transition hover:bg-[#1779dc] cursor-pointer"
+                buttonLabel = "Tambah kategori"
                 onClick={openCreateCategory}
       />
       {showCategory && (
@@ -127,7 +128,7 @@ const Kategori = () => {
                           <input
                             type="text"
                             name="name"
-                            value={formData.categoryName}
+                            value={formData.name}
                             onChange={handleChange}
                             required
                             className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-[#1c86ef] focus:bg-white"
@@ -149,10 +150,11 @@ const Kategori = () => {
                         </label>
       
                         <label className="block text-sm font-medium text-slate-700 md:col-span-2">
-                          <span className="mb-2 block">Alamat</span>
-                          <textarea
-                            name="address"
-                            value={formData.username}
+                          <span className="mb-2 block">username</span>
+                          <input
+                            type="text"
+                            name="total"
+                            value={formData.total}
                             onChange={handleChange}
                             required
                             rows="3"

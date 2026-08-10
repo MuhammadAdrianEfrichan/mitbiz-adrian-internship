@@ -44,9 +44,16 @@ const routes =[
         path: '/register-done',
         element : <RegisterDone />,
     },
+
+    // kasir
     {
         path: '/dasboard-kasir',
-        element : <Home />,
+        element : <ProtectedRoute allowedRoles={["STAFF"]}>
+                    <Home />
+                </ProtectedRoute>,
+        children: [
+        { index: true, element: <Home /> },
+    ],
     },
     {
         path: '/stok-kasir',
@@ -63,9 +70,14 @@ const routes =[
     // Admin
     {
         path: '/home-admin',
-        element : <ProtectedRoute>
-                    <HomeAdmin />,
-                </ProtectedRoute>
+        element : <ProtectedRoute allowedRoles={["ADMIN"]}>
+                    <HomeAdmin />
+                </ProtectedRoute>,
+        children: [
+        { index: true, element: <HomeAdmin /> },
+        { path: "cabang-admin", element: <Cabang /> },
+        { path: "kasir-admin", element: <Kasir /> },  
+    ],
     },
 
     {
