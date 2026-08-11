@@ -123,7 +123,7 @@ const Produk = () => {
         <MainAdmin
           title="Manajemen Produk"
           subtitle="Kelola produk Anda"
-          content={<ProdukAdmin refreshKey={refreshKey} branches={product} onEdit={openEditProduct} />}
+          content={<ProdukAdmin refreshKey={refreshKey} category={product} onEdit={openEditProduct} />}
           icon={<FiPlus size={18} />}
           buttonClassName="inline-flex items-center gap-2 rounded-xl bg-[#1c86ef] px-4 py-3 text-base font-medium text-white shadow-sm transition hover:bg-[#1779dc]"
           buttonLabel="Tambah Produk"

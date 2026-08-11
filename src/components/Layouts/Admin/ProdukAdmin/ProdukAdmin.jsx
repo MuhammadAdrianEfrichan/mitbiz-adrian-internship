@@ -1,25 +1,26 @@
 import { useEffect, useState } from "react";
 import { FiEdit2, FiPackage, FiSearch, FiTrash2 } from "react-icons/fi";
-import { deleteProduct, getProduct } from "../../../../services/product.service";
+import { categoryProduct, deleteProduct, getProduct, searchProduct } from "../../../../services/product.service";
+import { useSearchParams } from "react-router-dom";
 
 
 
 const ProdukAdmin = ({refreshKey, onEdit, category=[]}) => {
-
+  // console.log("category yang diterima:", category);
   const [product, setProduct] = useState([]);
+  const [totalProduct, setTotalProduct] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [ searchParams, setSearchParams] = useSearchParams();
+  // const [selectedCategory, setSelectedCategory] = useState("");
 
   const fetchProduct = async () => {
-
-
-
           setLoading(true);
           try {
               const data = await getProduct();
               // console.warn("🔥 RESPONSE Product:", data);
-              console.log("RESPONSE Product:", JSON.stringify(data, null, 2)); 
-              setProduct(data.data ?? []);
+              // console.log("RESPONSE Product:", JSON.stringify(data, null, 2)); 
+              setProduct(data.data ??[]);
           } catch (err) {
               setError(err.message);
           } finally {
@@ -29,6 +30,46 @@ const ProdukAdmin = ({refreshKey, onEdit, category=[]}) => {
       useEffect(() => {
           fetchProduct();
       }, [refreshKey]); 
+
+
+    useEffect(() => {
+  const fetchOrder = async () => {
+    setLoading(true);
+    try {
+      const keyword = searchParams.get('search');
+      const result =( keyword) ? await searchProduct(keyword) : await getProduct();
+      setProduct(result.data ?? []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchOrder();
+}, [searchParams.get('search')]);
+
+    useEffect(() => {
+  const fetchOrder = async () => {
+    setLoading(true);
+    try {
+      const keyword = searchParams.get('category');
+      const result =( keyword) ? await categoryProduct(keyword) : await getProduct();
+      setProduct(result.data ?? []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchOrder();
+}, [searchParams.get('category')]);
+
+
+
+
+const handleSearch = (value) => {
+  setSearchParams(value ? { search: value } : {});
+};
 
       const handleDelete = async (id) => {
               if (!confirm("Yakin ingin menghapus cabang ini?")) return;
@@ -40,9 +81,6 @@ const ProdukAdmin = ({refreshKey, onEdit, category=[]}) => {
               }
           };
 
-    if (loading) return <p>Memuat data cabang...</p>;
-    if (error) return <p className="text-red-500">{error}</p>;
-    if (product.length === 0) return <p className="text-slate-500">Belum product.</p>;
   
 
   return (
@@ -56,7 +94,7 @@ const ProdukAdmin = ({refreshKey, onEdit, category=[]}) => {
               <FiPackage size={16} />
             </span>
           </div>
-          <div className="text-[2.2rem] font-bold leading-none text-slate-800">{product.length}</div>
+          <div className="text-[2.2rem] font-bold leading-none text-slate-800">{totalProduct}</div>
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -82,25 +120,42 @@ const ProdukAdmin = ({refreshKey, onEdit, category=[]}) => {
               <FiSearch size={18} />
             </span>
             <input
-              type="text"
+              type="seacrh"
               placeholder="Cari kasir berdasarkan nama atau username..."
               className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-12 pr-4 text-sm text-slate-700 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
+              value={searchParams.get('search') || ''}
+              onChange={(e) => handleSearch(e.target.value)}
             />
           </label>
 
           <select
             className="min-w-45
             rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-700 focus:border-blue-500 focus:outline-none"
-            defaultValue=""
+            value= {searchParams.get("category") || ""}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSearchParams(
+                value
+                ? { category: value }
+                : {}
+                );
+              }}
           >
-            <option value="" disabled>Semua kategori</option>
-            <option value="makanan">Makanan</option>
-            <option value="minuman">Minuman</option>
-            <option value="snack">Snack</option>
+            <option value="">Semua kategori</option>
+            {category.map((filter)=>(
+              <option key={filter.id} value={filter.id}>{filter.name}</option>
+            ))}
           </select>
         </div>
 
         <div className="overflow-x-auto">
+           {loading ? (
+            <p className="px-5 py-6 text-slate-500">Memuat data produk...</p>
+          ) : error ? (
+            <p className="px-5 py-6 text-red-500">{error}</p>
+          ) : product.length === 0 ? (
+            <p className="px-5 py-6 text-slate-500">Belum ada produk.</p>
+          ) : (
           <table className="w-full border-collapse text-left">
             <thead>
               <tr className="bg-slate-100 text-sm font-semibold text-slate-700">
@@ -159,7 +214,9 @@ const ProdukAdmin = ({refreshKey, onEdit, category=[]}) => {
                 </tr>
               ))}
             </tbody>
+            
           </table>
+          )}
         </div>
       </section>
     </div>

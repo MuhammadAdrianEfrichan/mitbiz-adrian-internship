@@ -5,8 +5,7 @@ export const getProduct = async () => {
     const res = await fetch(`${environment.API_URL}/products`, {
         method: "GET",
         credentials: "include",
-    });
-    console.log("Status:", res.status); 
+    }); 
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Gagal mengambil data cabang");
     return data;
@@ -48,3 +47,39 @@ export const deleteProduct = async (id) => {
     if (!res.ok) throw new Error(data.message || "Gagal menghapus cabang");
     return data;
 };
+
+// seacrh
+
+export const searchProduct = async (search) => {
+    const filter = search ? search.toLocaleLowerCase() : "";
+
+    const url = filter
+        ? `${environment.API_URL}/products?search=${encodeURIComponent(filter)}`
+        : `${environment.API_URL}/products`;
+
+    const res = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Gagal mengambil data produk");
+    return data;
+};
+export const categoryProduct = async (category) => {
+    // const filter = search ? search.toLocaleLowerCase() : "";
+    let url = `${environment.API_URL}/products`
+    if(category){
+        url+= `?category/${category}`
+    }
+
+    const res = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Gagal mengambil data produk");
+    return data;
+};
+

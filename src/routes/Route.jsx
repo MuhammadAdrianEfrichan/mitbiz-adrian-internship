@@ -57,15 +57,21 @@ const routes =[
     },
     {
         path: '/stok-kasir',
-        element : <Stok />,
+        element :<ProtectedRoute >
+                <Stok />
+                </ProtectedRoute> 
     },
     {
         path: '/transaksi-kasir',
-        element : <Transaksi />,
+        element : <ProtectedRoute >
+        <Transaksi />
+        </ProtectedRoute>
     },
     {
         path: '/riwayat-transaksi-kasir',
-        element : <RiwayatTransaksi />,
+        element : <ProtectedRoute >
+                <RiwayatTransaksi />
+                </ProtectedRoute>
     },
     // Admin
     {
