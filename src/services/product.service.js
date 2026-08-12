@@ -70,7 +70,7 @@ export const categoryProduct = async (category) => {
     // const filter = search ? search.toLocaleLowerCase() : "";
     let url = `${environment.API_URL}/products`
     if(category){
-        url+= `?category=${encodeURIComponent(category)}`;
+        url+= `?categoryId=${encodeURIComponent(category)}`;
     }
 
     const res = await fetch(url, {

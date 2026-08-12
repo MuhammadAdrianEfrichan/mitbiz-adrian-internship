@@ -1,24 +1,14 @@
 import { FiEdit2, FiSearch, FiTrash2 } from "react-icons/fi";
-import { deletePembayaran, getPembayaran } from "../../../../services/pembayaran.service";
+import { deletePembayaran, getPembayaran, searchPembayaran } from "../../../../services/pembayaran.service";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
-const pembayaranData = [
-  {
-    metode: "Tunai",
-    cabang: "Cabang Jakarta Pusat, Cabang Jakarta Selatan, Cabang Tangerang",
-    status: "Aktif",
-  },
-  {
-    metode: "QRIS",
-    cabang: "Cabang Jakarta Pusat, Cabang Jakarta Selatan",
-    status: "Aktif",
-  },
-];
 
 const PembayaranAdmin = ({refreshKey, onEdit}) => {
     const [pembayaran, setPembayaran] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+      const [ searchParams, setSearchParams] = useSearchParams();
 
     const fetchPembayaran = async () => {
             setLoading(true);
@@ -47,6 +37,27 @@ const PembayaranAdmin = ({refreshKey, onEdit}) => {
                 }
             };
 
+                useEffect(() => {
+              const fetchOrder = async () => {
+                setLoading(true);
+                try {
+                  const keyword = searchParams.get('search');
+                  const result =( keyword) ? await searchPembayaran(keyword) : await getPembayaran();
+                  setPembayaran(result.data ?? []);
+                } catch (err) {
+                  setError(err.message);
+                } finally {
+                  setLoading(false);
+                }
+              };
+              fetchOrder();
+            }, [searchParams.get('search')]);
+
+
+            const handleSearch = (value) => {
+            setSearchParams(value ? { search: value } : {});
+            };
+
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -64,6 +75,8 @@ const PembayaranAdmin = ({refreshKey, onEdit}) => {
             type="text"
             placeholder="Cari metode pembayaran..."
             className="w-full rounded-xl border border-slate-300 bg-slate-50 py-3 pl-12 pr-4 text-sm text-slate-700 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
+            value={searchParams.get('search') || ''}
+            onChange={(e) => handleSearch(e.target.value)}
           />
         </label>
       </div>
