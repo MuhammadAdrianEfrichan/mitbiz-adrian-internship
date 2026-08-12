@@ -149,7 +149,7 @@ const handleSearch = (value) => {
         </div>
 
         <div className="overflow-x-auto">
-           {loading ? (
+          {loading ? (
             <p className="px-5 py-6 text-slate-500">Memuat data produk...</p>
           ) : error ? (
             <p className="px-5 py-6 text-red-500">{error}</p>

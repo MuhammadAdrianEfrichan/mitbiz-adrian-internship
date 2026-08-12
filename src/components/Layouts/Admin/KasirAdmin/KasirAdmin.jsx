@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FiEdit2, FiSearch, FiTrash2, FiUsers, FiPlus } from "react-icons/fi";
-import { deleteKasir, getKasir } from "../../../../services/kasir.service";
-
+import { deleteKasir, getKasir, searchKasir } from "../../../../services/kasir.service";
+import { useSearchParams } from "react-router-dom";
 const roles = [
   {
     name: "Kasir",
@@ -20,6 +20,7 @@ const KasirAdmin = ({refreshKey, onEdit, branches=[]}) => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [ searchParams, setSearchParams] = useSearchParams();
     // console.log("Tipe branches:", typeof branches, "isArray:", Array.isArray(branches), "value:", branches);
   //  console.log("BRANCHES PROP DI KASIRADMIN:", branches); 
 
@@ -29,8 +30,8 @@ const KasirAdmin = ({refreshKey, onEdit, branches=[]}) => {
         setLoading(true);
         try {
             const data = await getKasir();
-            console.warn("🔥 RESPONSE BRANCHES:", data);
-            console.log("RESPONSE BRANCHES:", JSON.stringify(data, null, 2));
+            // console.warn("🔥 RESPONSE BRANCHES:", data);
+            // console.log("RESPONSE BRANCHES:", JSON.stringify(data, null, 2));
             const allUsers = Array.isArray(data.data?.data)
                 ? data.data.data
                 : Array.isArray(data.data)
@@ -49,6 +50,28 @@ const KasirAdmin = ({refreshKey, onEdit, branches=[]}) => {
         fetchUsers();
     }, [refreshKey]);
 
+      useEffect(() => {
+  const fetchOrder = async () => {
+    setLoading(true);
+    try {
+      const keyword = searchParams.get('search');
+      const result =( keyword) ? await searchKasir(keyword) : await getKasir();
+      const allUsers = Array.isArray(result.data?.data)
+                ? result.data.data
+                : Array.isArray(data.data)
+                ? result.data
+                : [];
+      const cashiers = allUsers.filter((u) => u.role === "STAFF");
+      setUsers(cashiers);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchOrder();
+}, [searchParams.get('search')]);
+
     const handleDelete = async (id) => {
         if (!confirm("Yakin ingin menghapus kasir ini?")) return;
         try {
@@ -58,6 +81,10 @@ const KasirAdmin = ({refreshKey, onEdit, branches=[]}) => {
             alert(err.message);
         }
     };
+
+  const handleSearch = (value) => {
+  setSearchParams(value ? { search: value } : {});
+};
 
     //  if (loading) return <p>Memuat data kasir...</p>;
     // if (error) return <p className="text-red-500">{error}</p>;
@@ -134,11 +161,20 @@ const KasirAdmin = ({refreshKey, onEdit, branches=[]}) => {
               type="text"
               placeholder="Cari kasir berdasarkan nama atau username..."
               className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-12 pr-4 text-sm text-slate-700 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
+              value={searchParams.get('search') || ''}
+              onChange={(e) => handleSearch(e.target.value)}
             />
           </label>
         </div>
 
         <div className="overflow-hidden rounded-xl border border-slate-200">
+          {loading ? (
+            <p className="px-5 py-6 text-slate-500">Memuat data Staff...</p>
+          ) : error ? (
+            <p className="px-5 py-6 text-red-500">{error}</p>
+          ) : users.length === 0 ? (
+            <p className="px-5 py-6 text-slate-500">Belum ada Staff.</p>
+          ) : (
           <table className="w-full border-collapse text-left">
             <thead>
               <tr className="bg-slate-100 text-sm font-semibold text-slate-700">
@@ -179,6 +215,7 @@ const KasirAdmin = ({refreshKey, onEdit, branches=[]}) => {
               ))}
             </tbody>
           </table>
+          )}
         </div>
       </section>
     </div>

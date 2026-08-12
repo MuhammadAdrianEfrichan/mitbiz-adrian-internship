@@ -26,7 +26,7 @@ const CabangAdmin = ({refreshKey, onEdit}) => {
   { label: "Cabang Nonaktif", value: cabangNonaktif, icon: FiXCircle, accent: "border-red-300 bg-white text-slate-800" },
 ];
 
-     const fetchBranches = async () => {
+    const fetchBranches = async () => {
         setLoading(true);
         try {
             const data = await getBranches();

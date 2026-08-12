@@ -48,3 +48,20 @@ export const deleteKasir = async (id) => {
     if (!res.ok) throw new Error(data.message || "Gagal menghapus cabang");
     return data;
 };
+
+export const searchKasir = async (search) => {
+    const filter = search ? search.toLocaleLowerCase() : "";
+
+    const url = filter
+        ? `${environment.API_URL}/staff?search=${encodeURIComponent(filter)}`
+        : `${environment.API_URL}/staff`;
+
+    const res = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Gagal mengambil data produk");
+    return data;
+}
