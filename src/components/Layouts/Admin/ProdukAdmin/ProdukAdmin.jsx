@@ -6,13 +6,11 @@ import { useSearchParams } from "react-router-dom";
 
 
 const ProdukAdmin = ({refreshKey, onEdit, category=[]}) => {
-  // console.log("category yang diterima:", category);
   const [product, setProduct] = useState([]);
   const [totalProduct, setTotalProduct] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [ searchParams, setSearchParams] = useSearchParams();
-  // const [selectedCategory, setSelectedCategory] = useState("");
 
   const fetchProduct = async () => {
           setLoading(true);
