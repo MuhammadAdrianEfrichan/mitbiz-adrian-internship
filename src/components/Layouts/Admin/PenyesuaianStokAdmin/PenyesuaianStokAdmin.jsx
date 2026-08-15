@@ -2,6 +2,7 @@
   import { getPenstok } from "../../../../services/penstok.service";
   import { useEffect, useState } from "react";
   import { formatTanggal } from "../../../../utils/fromatDate";
+  import { ADJUSTMENT_TYPE_CONFIG, DEFAULT_TYPE_CONFIG } from "../../../../utils/adjustmantType";
 
 
 
@@ -11,13 +12,18 @@
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+
       const fetchProduct = async () => {
               setLoading(true);
               try {
-                  const data = await getPenstok();
-                  // console.warn("🔥 RESPONSE Product:", data);
-                  // console.log("RESPONSE Product:", JSON.stringify(data, null, 2)); 
-                  setProduct(data.data ??[]);
+                  const data = await getPenstok(); 
+                  const list = Array.isArray(data.data?.data)
+                              ? data.data.data
+                            : Array.isArray(data.data)
+                              ? data.data
+                              : [];
+
+                setProduct(list);
               } catch (err) {
                   setError(err.message);
                   setProduct([]); 
@@ -88,8 +94,8 @@
                 return (
                   <tr key={item.id} className="border-t border-slate-200 bg-white">
                     <td className="px-4 py-3 text-slate-700">{formatTanggal(item.createdAt)}</td>
-                    <td className="px-4 py-3 font-medium text-slate-700">{item.products.name}</td>
-                    <td className="px-4 py-3">{item.outlets.name}</td>
+                    <td className="px-4 py-3 font-medium text-slate-700">{item.product.name}</td>
+                    <td className="px-4 py-3">{item.outlet.name}</td>
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm ${typeConfig.className}`}

@@ -26,6 +26,7 @@ const PenyesuaianStok = () => {
     const [products, setProducts] = useState([]);
     const [productLoading, setProductLoading] = useState(true);
 
+
 const fetchData = async () => {
   setProductLoading(true);
   try {
@@ -99,22 +100,25 @@ useEffect(() => {
   };
    const handleSubmit = async (e) => {
       e.preventDefault();
+      const quantityNumber = Number(formData.quantity);
+      if (!formData.quantity || isNaN(quantityNumber) || quantityNumber <= 0) {
+      alert("Jumlah harus berupa angka lebih dari 0");
+      return;
+  }
       setIsSubmitting(true);
   
       try {
         const now = new Date();
         const payload = {
           type: formData.type,
-          quantity: formData.quantity,
+          quantity: quantityNumber,
           notes: formData.notes,
           outletId: formData.outletId,
           productId: formData.productId,
           createdAt: now.toISOString()
         };
         console.log(payload);
-        if (editingProduct) {
-          await createPenstok(payload);
-        }
+        await createPenstok(payload);
         handleSaveSuccess();
       } catch (err) {
         console.error(err);
@@ -199,10 +203,14 @@ useEffect(() => {
                         <div className="grid grid-cols-[160px_minmax(0,1fr)] border-b border-gray-400 bg-[#eff4f7]">
                           <div className="flex items-center px-4 py-3 text-base font-medium text-slate-700">Jumlah</div>
                           <input
-                            type="number"
+                            type="text"
                             name="quantity"
+                            inputMode="numeric" 
                             value={formData.quantity}
-                            onChange={handleChange}
+                            onChange={(e) => {
+                            const value = e.target.value.replace(/[^0-9]/g, ""); 
+                            setFormData((prev) => ({ ...prev, quantity: value }));
+                          }}
                             placeholder="0"
                             className="w-full border-0 bg-transparent px-4 py-3 text-base text-slate-700 placeholder:text-slate-400 focus:outline-none"
                           />

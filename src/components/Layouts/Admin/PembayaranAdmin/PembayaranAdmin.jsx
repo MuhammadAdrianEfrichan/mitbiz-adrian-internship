@@ -14,11 +14,18 @@ const PembayaranAdmin = ({refreshKey, onEdit}) => {
             setLoading(true);
             try {
                 const data = await getPembayaran();
-                // console.warn("🔥 RESPONSE BRANCHES:", data);
+                console.log("RAW RESPONSE PEMBAYARAN:", data);
+                console.warn("🔥 RESPONSE BRANCHES:", data);
                 // console.log("RESPONSE BRANCHES:", JSON.stringify(data, null, 2)); 
-                setPembayaran(data.data ?? []);
+                const list = Array.isArray(data.data?.data)
+                ? data.data.data
+                : Array.isArray(data.data)
+                  ? data.data
+                  : [];
+              setPembayaran(list);
             } catch (err) {
                 setError(err.message);
+                setPembayaran([]);
             } finally {
                 setLoading(false);
             }
@@ -37,26 +44,26 @@ const PembayaranAdmin = ({refreshKey, onEdit}) => {
                 }
             };
 
-                useEffect(() => {
-              const fetchOrder = async () => {
-                setLoading(true);
-                try {
-                  const keyword = searchParams.get('search');
-                  const result =( keyword) ? await searchPembayaran(keyword) : await getPembayaran();
-                  setPembayaran(result.data ?? []);
-                } catch (err) {
-                  setError(err.message);
-                } finally {
-                  setLoading(false);
-                }
-              };
-              fetchOrder();
-            }, [searchParams.get('search')]);
+            //     useEffect(() => {
+            //   const fetchOrder = async () => {
+            //     setLoading(true);
+            //     try {
+            //       const keyword = searchParams.get('search');
+            //       const result =( keyword) ? await searchPembayaran(keyword) : await getPembayaran();
+            //       setPembayaran(result.data ?? []);
+            //     } catch (err) {
+            //       setError(err.message);
+            //     } finally {
+            //       setLoading(false);
+            //     }
+            //   };
+            //   fetchOrder();
+            // }, [searchParams.get('search')]);
 
 
-            const handleSearch = (value) => {
-            setSearchParams(value ? { search: value } : {});
-            };
+            // const handleSearch = (value) => {
+            // setSearchParams(value ? { search: value } : {});
+            // };
 
 
   return (

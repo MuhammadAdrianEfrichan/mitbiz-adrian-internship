@@ -1,28 +1,109 @@
+import { useEffect, useState, useMemo } from "react";
 import { FiBox, FiSearch, FiAlertTriangle, FiPackage } from "react-icons/fi";
-
-const stockData = [
-  { nama: "Nasi Goreng", kategori: "Makanan", cabang: "Jakarta Pusat", stokTersedia: 50, minStok: 10, status: "Normal", tanggal: "09 Feb 2024" },
-  { nama: "Nasi Goreng", kategori: "Makanan", cabang: "Jakarta Pusat", stokTersedia: 50, minStok: 10, status: "Normal", tanggal: "09 Feb 2024" },
-  { nama: "Nasi Goreng", kategori: "Makanan", cabang: "Jakarta Pusat", stokTersedia: 50, minStok: 10, status: "Normal", tanggal: "09 Feb 2024" },
-  { nama: "Nasi Goreng", kategori: "Makanan", cabang: "Jakarta Pusat", stokTersedia: 50, minStok: 10, status: "Normal", tanggal: "09 Feb 2024" },
-  { nama: "Nasi Goreng", kategori: "Makanan", cabang: "Jakarta Pusat", stokTersedia: 50, minStok: 10, status: "Normal", tanggal: "09 Feb 2024" },
-  { nama: "Nasi Goreng", kategori: "Makanan", cabang: "Jakarta Pusat", stokTersedia: 50, minStok: 10, status: "Normal", tanggal: "09 Feb 2024" },
-  { nama: "Nasi Goreng", kategori: "Makanan", cabang: "Jakarta Pusat", stokTersedia: 50, minStok: 10, status: "Normal", tanggal: "09 Feb 2024" },
-  { nama: "Nasi Goreng", kategori: "Makanan", cabang: "Jakarta Pusat", stokTersedia: 50, minStok: 10, status: "Normal", tanggal: "09 Feb 2024" },
-];
-
-const summaryCards = [
-  { label: "Total Produk", value: 7, icon: FiBox, tone: "bg-white text-slate-800 border-slate-200" },
-  { label: "Stok Menipis", value: 0, icon: FiAlertTriangle, tone: "bg-white text-slate-800 border-slate-200" },
-  { label: "Stok Habis", value: 0, icon: FiPackage, tone: "bg-white text-slate-800 border-slate-200" },
-];
+import { getPenstok } from "../../../../services/penstok.service";
+import { getBranches } from "../../../../services/branch.service";
+import { getProduct } from "../../../../services/product.service";
+import { formatTanggal } from "../../../../utils/fromatDate";
 
 const StokAdmin = () => {
+  const [penStok, setPenStok] = useState([]);
+  const [outlets, setOutlets] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [branchRes, productRes, penStokRes] = await Promise.all([
+        getBranches(),
+        getProduct(),
+        getPenstok(),
+      ]);
+
+      const branchList = Array.isArray(branchRes.data?.data) ? branchRes.data.data : Array.isArray(branchRes.data) ? branchRes.data : [];
+      const productList = Array.isArray(productRes.data?.data) ? productRes.data.data : Array.isArray(productRes.data) ? productRes.data : [];
+      const penStokList = Array.isArray(penStokRes.data?.data) ? penStokRes.data.data : Array.isArray(penStokRes.data) ? penStokRes.data : [];
+
+      setOutlets(branchList);
+      setProducts(productList);
+      setPenStok(penStokList); 
+    } catch (err) {
+      console.error("Gagal mengambil data:", err);
+      setError(err.message);
+      setOutlets([]);
+      setProducts([]);
+      setPenStok([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const stockRows = useMemo(() => {
+    const rows = [];
+
+    products.forEach((product) => {
+      outlets.forEach((outlet) => {
+        const history = penStok.filter(
+          (item) => item.productId === product.id && item.outletId === outlet.id
+        );
+
+        if (history.length === 0) return; 
+
+        const stokTersedia = history.reduce((total, item) => {
+          if (item.type === "IN") return total + item.quantity;
+          if (item.type === "OUT") return total - item.quantity;
+          if (item.type === "CORRECTION") return item.quantity;
+          return total;
+        }, 0);
+
+        const lastUpdate = history.reduce(
+          (latest, item) => (new Date(item.createdAt) > new Date(latest) ? item.createdAt : latest),
+          history[0].createdAt
+        );
+
+        const minStok = product.minStock ?? 10;
+
+        rows.push({
+          id: `${product.id}-${outlet.id}`,
+          nama: product.name,
+          kategori: product.category?.name ?? "-",
+          cabang: outlet.name,
+          stokTersedia,
+          minStok,
+          status: stokTersedia === 0 ? "Habis" : stokTersedia <= minStok ? "Menipis" : "Normal",
+          tanggal: lastUpdate,
+        });
+      });
+    });
+
+    return rows;
+  }, [products, outlets, penStok]);
+
+  const summaryCards = useMemo(
+    () => [
+      { label: "Total Produk", value: products.length, icon: FiBox },
+      { label: "Stok Menipis", value: stockRows.filter((r) => r.status === "Menipis").length, icon: FiAlertTriangle },
+      { label: "Stok Habis", value: stockRows.filter((r) => r.status === "Habis").length, icon: FiPackage },
+    ],
+    [products, stockRows]
+  );
+
+  const statusBadgeClass = (status) => {
+    if (status === "Habis") return "bg-red-100 text-red-700";
+    if (status === "Menipis") return "bg-amber-100 text-amber-700";
+    return "bg-blue-100 text-blue-700";
+  };
+
   return (
     <div className="space-y-5">
       <section className="grid grid-cols-3 gap-4">
-        {summaryCards.map(({ label, value, icon: Icon, tone }) => (
-          <div key={label} className={`rounded-xl border bg-white p-3 shadow-sm ${tone}`}>
+        {summaryCards.map(({ label, value, icon: Icon }) => (
+          <div key={label} className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-[0.92rem] font-medium text-slate-600">{label}</span>
               <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500">
@@ -80,21 +161,31 @@ const StokAdmin = () => {
                 </tr>
               </thead>
               <tbody>
-                {stockData.map(({ nama, kategori, cabang, stokTersedia, minStok, status, tanggal }, index) => (
-                  <tr key={`${nama}-${index}`} className="border-t border-slate-200 bg-white">
-                    <td className="px-4 py-3 font-medium text-slate-700">{nama}</td>
-                    <td className="px-4 py-3">{kategori}</td>
-                    <td className="px-4 py-3">{cabang}</td>
-                    <td className="px-4 py-3">{stokTersedia}</td>
-                    <td className="px-4 py-3">{minStok}</td>
-                    <td className="px-4 py-3">
-                      <span className="inline-flex rounded-md bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-700">
-                        {status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">{tanggal}</td>
+                {loading ? (
+                  <tr>
+                    <td colSpan={7} className="p-4 text-center text-sm text-slate-500">Memuat data...</td>
                   </tr>
-                ))}
+                ) : stockRows.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="p-4 text-center text-sm text-slate-500">Belum ada data stok.</td>
+                  </tr>
+                ) : (
+                  stockRows.map((row) => (
+                    <tr key={row.id} className="border-t border-slate-200 bg-white">
+                      <td className="px-4 py-3 font-medium text-slate-700">{row.nama}</td>
+                      <td className="px-4 py-3">{row.kategori}</td>
+                      <td className="px-4 py-3">{row.cabang}</td>
+                      <td className="px-4 py-3">{row.stokTersedia}</td>
+                      <td className="px-4 py-3">{row.minStok}</td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex rounded-md px-3 py-1.5 text-xs font-medium ${statusBadgeClass(row.status)}`}>
+                          {row.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">{formatTanggal(row.tanggal)}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -104,4 +195,4 @@ const StokAdmin = () => {
   );
 };
 
-export default StokAdmin
+export default StokAdmin;
