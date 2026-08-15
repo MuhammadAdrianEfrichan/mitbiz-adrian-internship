@@ -4,6 +4,7 @@ import { getPenstok } from "../../../../services/penstok.service";
 import { getBranches } from "../../../../services/branch.service";
 import { getProduct } from "../../../../services/product.service";
 import { formatTanggal } from "../../../../utils/fromatDate";
+import { useSearchParams } from "react-router-dom";
 
 const StokAdmin = () => {
   const [penStok, setPenStok] = useState([]);
@@ -11,6 +12,7 @@ const StokAdmin = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const fetchData = async () => {
     setLoading(true);
@@ -21,13 +23,27 @@ const StokAdmin = () => {
         getPenstok(),
       ]);
 
-      const branchList = Array.isArray(branchRes.data?.data) ? branchRes.data.data : Array.isArray(branchRes.data) ? branchRes.data : [];
-      const productList = Array.isArray(productRes.data?.data) ? productRes.data.data : Array.isArray(productRes.data) ? productRes.data : [];
-      const penStokList = Array.isArray(penStokRes.data?.data) ? penStokRes.data.data : Array.isArray(penStokRes.data) ? penStokRes.data : [];
+      const branchList = Array.isArray(branchRes.data?.data)
+        ? branchRes.data.data
+        : Array.isArray(branchRes.data)
+        ? branchRes.data
+        : [];
+
+      const productList = Array.isArray(productRes.data?.data)
+        ? productRes.data.data
+        : Array.isArray(productRes.data)
+        ? productRes.data
+        : [];
+
+      const penStokList = Array.isArray(penStokRes.data?.data)
+        ? penStokRes.data.data
+        : Array.isArray(penStokRes.data)
+        ? penStokRes.data
+        : [];
 
       setOutlets(branchList);
       setProducts(productList);
-      setPenStok(penStokList); 
+      setPenStok(penStokList);
     } catch (err) {
       console.error("Gagal mengambil data:", err);
       setError(err.message);
@@ -43,52 +59,117 @@ const StokAdmin = () => {
     fetchData();
   }, []);
 
-  const stockRows = useMemo(() => {
-    const rows = [];
+  // handleSearch & updateSearchParam ada di scope komponen (bukan di dalam useMemo)
+  // supaya bisa dipakai dari JSX.
+  const updateSearchParam = (key, value) => {
+    const next = new URLSearchParams(searchParams);
+    if (value) next.set(key, value);
+    else next.delete(key);
+    setSearchParams(next);
+  };
 
+  const handleSearch = (value) => updateSearchParam("search", value);
+
+  // Ambil daftar kategori unik dari produk (untuk dropdown "Semua kategori")
+  const categories = useMemo(() => {
+    const unique = new Map();
     products.forEach((product) => {
-      outlets.forEach((outlet) => {
-        const history = penStok.filter(
-          (item) => item.productId === product.id && item.outletId === outlet.id
-        );
-
-        if (history.length === 0) return; 
-
-        const stokTersedia = history.reduce((total, item) => {
-          if (item.type === "IN") return total + item.quantity;
-          if (item.type === "OUT") return total - item.quantity;
-          if (item.type === "CORRECTION") return item.quantity;
-          return total;
-        }, 0);
-
-        const lastUpdate = history.reduce(
-          (latest, item) => (new Date(item.createdAt) > new Date(latest) ? item.createdAt : latest),
-          history[0].createdAt
-        );
-
-        const minStok = product.minStock ?? 10;
-
-        rows.push({
-          id: `${product.id}-${outlet.id}`,
-          nama: product.name,
-          kategori: product.category?.name ?? "-",
-          cabang: outlet.name,
-          stokTersedia,
-          minStok,
-          status: stokTersedia === 0 ? "Habis" : stokTersedia <= minStok ? "Menipis" : "Normal",
-          tanggal: lastUpdate,
-        });
-      });
+      if (product.category?.id) {
+        unique.set(product.category.id, product.category.name);
+      }
     });
+    return Array.from(unique, ([id, name]) => ({ id, name }));
+  }, [products]);
 
-    return rows;
-  }, [products, outlets, penStok]);
+const stockRows = useMemo(() => {
+  const rows = [];
+
+  const selectedOutletId = searchParams.get("outletId") || "";
+  const selectedCategoryId = searchParams.get("categoryId") || "";
+  const selectedStatus = searchParams.get("status") || "";
+  const keyword = (searchParams.get("search") || "").trim().toLowerCase();
+
+  products.forEach((product) => {
+    // filter kategori (dropdown, tetap by id)
+    if (selectedCategoryId && product.category?.id !== selectedCategoryId) return;
+
+    outlets.forEach((outlet) => {
+      // filter cabang (dropdown, tetap by id)
+      if (selectedOutletId && outlet.id !== selectedOutletId) return;
+
+      const history = penStok.filter(
+        (item) => item.productId === product.id && item.outletId === outlet.id
+      );
+
+      if (history.length === 0) return;
+
+      const stokTersedia = history.reduce((total, item) => {
+        if (item.type === "IN") return total + item.quantity;
+        if (item.type === "OUT") return total - item.quantity;
+        if (item.type === "CORRECTION") return item.quantity;
+        return total;
+      }, 0);
+
+      const lastUpdate = history.reduce(
+        (latest, item) =>
+          new Date(item.createdAt) > new Date(latest) ? item.createdAt : latest,
+        history[0].createdAt
+      );
+
+      const minStok = product.minStock ?? 10;
+      const status =
+        stokTersedia === 0 ? "Habis" : stokTersedia <= minStok ? "Menipis" : "Normal";
+
+      // filter status (dropdown)
+      if (selectedStatus && status !== selectedStatus) return;
+
+      const row = {
+        id: `${product.id}-${outlet.id}`,
+        nama: product.name,
+        kategori: product.category?.name ?? "-",
+        cabang: outlet.name,
+        stokTersedia,
+        minStok,
+        status,
+        tanggal: lastUpdate,
+      };
+
+      // filter search keseluruhan (nama produk, kategori, cabang, status, angka stok)
+      if (keyword) {
+        const searchable = [
+          row.nama,
+          row.kategori,
+          row.cabang,
+          row.status,
+          String(row.stokTersedia),
+          String(row.minStok),
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        if (!searchable.includes(keyword)) return;
+      }
+
+      rows.push(row);
+    });
+  });
+
+  return rows;
+}, [products, outlets, penStok, searchParams]);
 
   const summaryCards = useMemo(
     () => [
       { label: "Total Produk", value: products.length, icon: FiBox },
-      { label: "Stok Menipis", value: stockRows.filter((r) => r.status === "Menipis").length, icon: FiAlertTriangle },
-      { label: "Stok Habis", value: stockRows.filter((r) => r.status === "Habis").length, icon: FiPackage },
+      {
+        label: "Stok Menipis",
+        value: stockRows.filter((r) => r.status === "Menipis").length,
+        icon: FiAlertTriangle,
+      },
+      {
+        label: "Stok Habis",
+        value: stockRows.filter((r) => r.status === "Habis").length,
+        icon: FiPackage,
+      },
     ],
     [products, stockRows]
   );
@@ -130,19 +211,46 @@ const StokAdmin = () => {
               type="text"
               placeholder="Cari produk..."
               className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
+              value={searchParams.get("search") || ""}
+              onChange={(e) => handleSearch(e.target.value)}
             />
           </label>
 
-          <select className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-blue-500 focus:outline-none">
-            <option>Semua cabang</option>
+          <select
+            className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-blue-500 focus:outline-none"
+            value={searchParams.get("outletId") || ""}
+            onChange={(e) => updateSearchParam("outletId", e.target.value)}
+          >
+            <option value="">Semua cabang</option>
+            {outlets.map((outlet) => (
+              <option key={outlet.id} value={outlet.id}>
+                {outlet.name}
+              </option>
+            ))}
           </select>
 
-          <select className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-blue-500 focus:outline-none">
-            <option>Semua kategori</option>
+          <select
+            className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-blue-500 focus:outline-none"
+            value={searchParams.get("categoryId") || ""}
+            onChange={(e) => updateSearchParam("categoryId", e.target.value)}
+          >
+            <option value="">Semua kategori</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
           </select>
 
-          <select className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-blue-500 focus:outline-none">
-            <option>Semua status</option>
+          <select
+            className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-blue-500 focus:outline-none"
+            value={searchParams.get("status") || ""}
+            onChange={(e) => updateSearchParam("status", e.target.value)}
+          >
+            <option value="">Semua status</option>
+            <option value="Normal">Normal</option>
+            <option value="Menipis">Menipis</option>
+            <option value="Habis">Habis</option>
           </select>
         </div>
 
@@ -163,11 +271,21 @@ const StokAdmin = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="p-4 text-center text-sm text-slate-500">Memuat data...</td>
+                    <td colSpan={7} className="p-4 text-center text-sm text-slate-500">
+                      Memuat data...
+                    </td>
+                  </tr>
+                ) : error ? (
+                  <tr>
+                    <td colSpan={7} className="p-4 text-center text-sm text-red-500">
+                      {error}
+                    </td>
                   </tr>
                 ) : stockRows.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="p-4 text-center text-sm text-slate-500">Belum ada data stok.</td>
+                    <td colSpan={7} className="p-4 text-center text-sm text-slate-500">
+                      Belum ada data stok.
+                    </td>
                   </tr>
                 ) : (
                   stockRows.map((row) => (
@@ -178,7 +296,11 @@ const StokAdmin = () => {
                       <td className="px-4 py-3">{row.stokTersedia}</td>
                       <td className="px-4 py-3">{row.minStok}</td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex rounded-md px-3 py-1.5 text-xs font-medium ${statusBadgeClass(row.status)}`}>
+                        <span
+                          className={`inline-flex rounded-md px-3 py-1.5 text-xs font-medium ${statusBadgeClass(
+                            row.status
+                          )}`}
+                        >
                           {row.status}
                         </span>
                       </td>

@@ -27,37 +27,46 @@ export const createPenstok = async (penstokData) => {
     return data;
 };
 
-// UPDATE — edit cabang berdasarkan id
-export const updatePembayaran = async (id, pembayaranData) => {
-    const res = await fetch(`${environment.API_URL}/stocks/adjus/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(pembayaranData),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Gagal mengubah pembayaran");
-    return data;
-};
-
-// DELETE — hapus cabang berdasarkan id
-export const deletePembayaran = async (id) => {
-    const res = await fetch(`${environment.API_URL}/stocks/adjus/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Gagal menghapus cabang");
-    return data;
-};
-
 // search
-export const searchPembayaran = async (search) => {
+export const searchPenstok = async (search) => {
     const filter = search ? search.toLocaleLowerCase() : "";
 
     const url = filter
-        ? `${environment.API_URL}/stocks/adjus?search=${encodeURIComponent(filter)}`
-        : `${environment.API_URL}/stocks/adjus`;
+        ? `${environment.API_URL}/stocks/adjustments?search=${encodeURIComponent(filter)}`
+        : `${environment.API_URL}/stocks/adjustments`;
+
+    const res = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Gagal mengambil data produk");
+    return data;
+};
+
+export const categoryPenStok = async (outletId) => {
+    let url = `${environment.API_URL}/stocks/adjustments`
+    if(outletId){
+        url+= `?outletId=${encodeURIComponent(outletId)}`;
+    }
+
+    const res = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Gagal mengambil data produk");
+    return data;
+};
+
+export const searchPenStok = async (search) => {
+    const filter = search ? search.toLocaleLowerCase() : "";
+
+    const url = filter
+        ? `${environment.API_URL}/stocks/adjustments?search=${encodeURIComponent(filter)}`
+        : `${environment.API_URL}/stocks/adjustments`;
 
     const res = await fetch(url, {
         method: "GET",

@@ -1,8 +1,9 @@
   import { FiArrowDown, FiArrowUp, FiSearch } from "react-icons/fi";
-  import { getPenstok } from "../../../../services/penstok.service";
+  import { categoryPenStok, getPenstok, searchPenStok } from "../../../../services/penstok.service";
   import { useEffect, useState } from "react";
   import { formatTanggal } from "../../../../utils/fromatDate";
   import { ADJUSTMENT_TYPE_CONFIG, DEFAULT_TYPE_CONFIG } from "../../../../utils/adjustmantType";
+import { useSearchParams } from "react-router-dom";
 
 
 
@@ -11,6 +12,7 @@
     const [product, setProduct] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [ searchParams, setSearchParams] = useSearchParams();
 
 
       const fetchProduct = async () => {
@@ -35,6 +37,42 @@
               fetchProduct();
           }, [refreshKey]); 
 
+          useEffect(() => {
+            const fetchOrder = async () => {
+              setLoading(true);
+              try {
+                const keyword = searchParams.get('outletId');
+                const result =( keyword) ? await categoryPenStok(keyword) : await getPenstok();
+                console.log("hasil categoryProduct:", result);
+                setProduct(result.data?.data ?? []);
+              } catch (err) {
+                setError(err.message);
+              } finally {
+                setLoading(false);
+              }
+            };
+            fetchOrder();
+          }, [searchParams.get('outletId')]);
+
+          useEffect(() => {
+            const fetchOrder = async () => {
+              setLoading(true);
+              try {
+                const keyword = searchParams.get('search');
+                const result =( keyword) ? await searchPenStok(keyword) : await getPenstok();
+              setProduct(result.data?.data ?? []);
+              } catch (err) {
+                setError(err.message);
+              } finally {
+                setLoading(false);
+              }
+            };
+            fetchOrder();
+          }, [searchParams.get('search')]);
+
+          const handleSearch = (value) => {
+          setSearchParams(value ? { search: value } : {});
+        };
     return (
       <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="mb-4 flex items-center justify-between gap-3">
@@ -48,14 +86,27 @@
               <FiSearch size={15} />
             </span>
             <input
-              type="text"
+              type="search"
               placeholder="Cari produk..."
               className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
+              value={searchParams.get('search') || ''}
+              onChange={(e) => handleSearch(e.target.value)}
             />
           </label>
 
-          <select className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-blue-500 focus:outline-none">
-            <option>Semua cabang</option>
+          <select className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-blue-500 focus:outline-none"  value= {searchParams.get("outletId") || ""}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSearchParams(
+                value
+                ? { outletId: value }
+                : {}
+                );
+              }}>
+            <option value="">Semua cabang</option>
+            {outlets.map((outlet) => (
+              <option key={outlet.id} value={outlet.id}>{outlet.name}</option>
+            ))}
           </select>
         </div>
 
