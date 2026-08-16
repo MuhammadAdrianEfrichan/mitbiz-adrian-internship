@@ -22,8 +22,8 @@ const Transaksi = (refreshKey) => {
             setLoading(true);
             try {
                 const data = await getProduct();
-                  console.warn("🔥 RESPONSE Product:", data);
-                  console.log("RESPONSE Product:", JSON.stringify(data, null, 2)); 
+                console.warn("🔥 RESPONSE Product:", data);
+                console.log("RESPONSE Product:", JSON.stringify(data, null, 2)); 
                 setProduct(data.data ??[]);
             } catch (err) {
                 setError(err.message);
@@ -65,7 +65,7 @@ const Transaksi = (refreshKey) => {
                     {/* Product grid */}
                     <div className="grid grid-cols-3 gap-6">
                         {product.map((p) => (
-                            <ProductCard key={p.id} image={p.image} title={p.name} sku={p.sku} price={p.price} />
+                            <ProductCard key={p.id} image={p.imageUrl} title={p.name} sku={p.sku} price={p.price} />
                         ))}
                     </div>
                 </div>
