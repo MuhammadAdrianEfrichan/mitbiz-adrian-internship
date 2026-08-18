@@ -15,27 +15,27 @@ export const getProduct = async () => {
 export const createProduct = async (productData) => {
     const res = await fetch(`${environment.API_URL}/products`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(productData),
+        body: productData, // langsung kirim FormData, JANGAN set Content-Type & JANGAN stringify
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Gagal menambah cabang");
     return data;
 };
 
-// UPDATE — edit cabang berdasarkan id
+
 export const updateProduct = async (id, productData) => {
     const res = await fetch(`${environment.API_URL}/products/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(productData),
+        body: productData, 
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Gagal mengubah cabang");
     return data;
 };
+
+// UPDATE — edit cabang berdasarkan id
 
 // DELETE — hapus cabang berdasarkan id
 export const deleteProduct = async (id) => {

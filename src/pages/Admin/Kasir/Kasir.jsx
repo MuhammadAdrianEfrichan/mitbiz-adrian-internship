@@ -80,7 +80,6 @@ const Kasir = () => {
         fetchRoles();
     }, [refreshKey]);
 
-    /* ================= HANDLER: KARYAWAN (endpoint /staff) ================= */
     const resetKaryawanForm = () => {
         setKaryawanForm(initialKaryawanForm);
         setEditingUser(null);

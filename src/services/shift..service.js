@@ -5,12 +5,17 @@ export const getShiftActive = async () => {
         method: "GET",
         credentials: "include",
     });
+
+    if (res.status === 404) {
+        return { success: true, data: null };
+    }
+
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Gagal mengambil data user");
+    if (!res.ok) throw new Error(data.message || "Gagal mengambil status shift");
     return data;
 };
 export const getShiftToday = async () => {
-    const res = await fetch(`${environment.API_URL}/shifts/today-stats`, {
+    const res = await fetch(`${environment.API_URL}/shifts/summary`, {
         method: "GET",
         credentials: "include",
     });
@@ -28,7 +33,7 @@ export const getShiftOpen = async () => {
     if (!res.ok) throw new Error(data.message || "Gagal mengambil data user");
     return data;
 };
-export const getShiftClose = async () => {
+export const getShiftClose = async (id) => {
     const res = await fetch(`${environment.API_URL}/shifts/${id}/close`, {
         method: "PATCH",
         credentials: "include",

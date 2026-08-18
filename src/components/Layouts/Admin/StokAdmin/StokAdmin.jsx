@@ -90,11 +90,9 @@ const stockRows = useMemo(() => {
   const keyword = (searchParams.get("search") || "").trim().toLowerCase();
 
   products.forEach((product) => {
-    // filter kategori (dropdown, tetap by id)
     if (selectedCategoryId && product.category?.id !== selectedCategoryId) return;
 
     outlets.forEach((outlet) => {
-      // filter cabang (dropdown, tetap by id)
       if (selectedOutletId && outlet.id !== selectedOutletId) return;
 
       const history = penStok.filter(

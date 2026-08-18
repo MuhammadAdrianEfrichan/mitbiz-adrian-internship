@@ -37,10 +37,10 @@ const Home = () => {
                 getShiftActive(),
                 getShiftToday(),
             ]);
-
-            setShift(shiftRes.data?.data ?? null);
+            console.log("SHIFT ACTIVE RESPONSE:", JSON.stringify(shiftRes, null, 2));
+            setShift(shiftRes.data ?? null);
             setStats({
-                discount: statsRes.data?.data?.discount ?? 0,
+                discount: statsRes.data?.discount ?? 0,
                 tax: statsRes.data?.data?.tax ?? 0,
             });
         } catch (err) {
@@ -58,9 +58,9 @@ const Home = () => {
         setActionLoading(true);
         try {
             const res = await getShiftOpen();
-            setShift(res.data.data);
+            setShift(res.data ?? null);
         } catch (err) {
-            const message = err.response?.data?.message || 'Gagal memulai shift';
+            const message = err.message || 'Gagal memulai shift';
             alert(message);
         } finally {
             setActionLoading(false);
@@ -74,15 +74,20 @@ const Home = () => {
 
         setActionLoading(true);
         try {
-            await getShiftClose();
+            await getShiftClose(shift.id);
             setShift(null);
         } catch (err) {
-            const message = err.response?.data?.message || 'Gagal mengakhiri shift';
+            const message = err.message || 'Gagal mengakhiri shift';
             alert(message);
+            console.log(err.message);
         } finally {
             setActionLoading(false);
         }
     };
+    const handleBuatTransaksi = () => {
+    if (!shift) return;
+    navigate('/transaksi-kasir');
+};
 
 
     if (loading) {

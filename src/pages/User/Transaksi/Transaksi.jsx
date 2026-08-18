@@ -4,27 +4,30 @@ import InputSearch from "../../../components/ui/InputSearch";
 import ProductCard from "../../../components/fragments/User/ProductCard/ProductCard";
 import { BiDetail } from "react-icons/bi";
 import { PiBasket } from "react-icons/pi";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { getProduct } from "../../../services/product.service";
+import { categoryProduct, getProduct } from "../../../services/product.service";
 
 
 
-const Transaksi = (refreshKey) => {
+const Transaksi = () => {
     const [product, setProduct] = useState([]);
     const [totalProduct, setTotalProduct] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [ searchParams, setSearchParams] = useSearchParams();
+    const [allProducts, setAllProducts] = useState([]);
 
 
     const fetchProduct = async () => {
             setLoading(true);
             try {
+                
                 const data = await getProduct();
-                console.warn("🔥 RESPONSE Product:", data);
-                console.log("RESPONSE Product:", JSON.stringify(data, null, 2)); 
+                // console.warn("🔥 RESPONSE Product:", data);
+                // console.log("RESPONSE Product:", JSON.stringify(data, null, 2)); 
                 setProduct(data.data ??[]);
+                setAllProducts(data.data ?? []);
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -33,7 +36,52 @@ const Transaksi = (refreshKey) => {
     };
     useEffect(() => {
         fetchProduct();
-    }, [refreshKey]); 
+    }, []); 
+
+  useEffect(() => {
+    const keyword = searchParams.get('categoryId');
+
+    const fetchOrder = async () => {
+        setLoading(true);
+        try {
+            const result = keyword ? await categoryProduct(keyword) : await getProduct();
+            setProduct(result.data ?? []);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+    fetchOrder();
+}, [searchParams.get('categoryId')]);
+
+    const categoryList = useMemo(() => {
+    const map = {};
+    allProducts.forEach((p) => {
+        const cat = p.category;
+        if (cat?.id) {
+            if (!map[cat.id]) {
+                map[cat.id] = { id: cat.id, name: cat.name, count: 0 };
+            }
+            map[cat.id].count += 1;
+        }
+    });
+    return Object.values(map);
+}, [allProducts]);
+
+    const activeCategory = searchParams.get('categoryId');
+
+    const handleFilterCategory = (categoryName) => {
+        setSearchParams((prev) => {
+            const params = new URLSearchParams(prev);
+            if (categoryName) {
+                params.set('categoryId', categoryName);
+            } else {
+                params.delete('categoryId');
+            }
+            return params;
+        });
+    };
 
 
     return (
@@ -54,18 +102,44 @@ const Transaksi = (refreshKey) => {
                     </div>
 
                     {/* Filters */}
-                    <div className="flex items-center gap-3 mb-6">
-                        <button className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium shadow">Semua <span className="ml-2 bg-blue-100 text-blue-700 rounded-full px-2 py-0.5 text-xs">{product.length}</span></button>
-                        <button className="px-4 py-2 bg-gray-100 rounded-full text-sm">Makanan <span className="ml-2 text-gray-500">13</span></button>
-                        <button className="px-4 py-2 bg-gray-100 rounded-full text-sm">Minuman <span className="ml-2 text-gray-500">4</span></button>
-                        <button className="px-4 py-2 bg-gray-100 rounded-full text-sm">Snack <span className="ml-2 text-gray-500">8</span></button>
-                        <button className="px-4 py-2 bg-gray-100 rounded-full text-sm">Alat Tulis <span className="ml-2 text-gray-500">12</span></button>
+                    <div className="flex items-center gap-3 mb-6 flex-wrap">
+                        <button
+                            type="button"
+                            onClick={() => handleFilterCategory(null)}
+                            className={`px-4 py-2 cursor-pointer rounded-full text-sm font-medium shadow ${
+                                !activeCategory
+                                    ? "bg-white border border-gray-200"
+                                    : "bg-gray-100 text-gray-600"
+                            }`}
+                        >
+                            Semua
+                            <span className="ml-2 bg-blue-100 text-blue-700 rounded-full px-2 py-0.5 text-xs">
+                                {allProducts.length}
+                            </span>
+                        </button>
+
+                        {categoryList.map(({ id, name, count }) => (
+                            <button
+                                key={id}
+                                type="button"
+                                onClick={() => handleFilterCategory(id)}
+                                className={`px-4 py-2 cursor-pointer rounded-full text-sm font-medium shadow ${
+                                    activeCategory === id
+                                        ? "bg-white border border-gray-200 shadow"
+                                        : "bg-gray-100 text-gray-600"
+                                }`}
+                            >
+                                {name}
+                                <span className="ml-2 bg-blue-100 text-blue-700 rounded-full px-2 py-0.5 text-xs">{count}</span>
+                            </button>
+                        ))}
                     </div>
 
                     {/* Product grid */}
                     <div className="grid grid-cols-3 gap-6">
                         {product.map((p) => (
                             <ProductCard key={p.id} image={p.imageUrl} title={p.name} sku={p.sku} price={p.price} />
+                            
                         ))}
                     </div>
                 </div>

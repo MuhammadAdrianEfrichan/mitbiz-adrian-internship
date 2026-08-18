@@ -1,6 +1,7 @@
 import React from "react";
+import Button from "../../../ui/Button";
 
-const ProductCard = ({ image, title, sku, price, available = true }) => {
+const ProductCard = ({ image, title, sku, price, available = true, onClick }) => {
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
       <div className="relative">
@@ -15,7 +16,10 @@ const ProductCard = ({ image, title, sku, price, available = true }) => {
       <div className="p-4">
         <h4 className="text-lg font-semibold text-gray-900">{title}</h4>
         <div className="text-sm text-gray-400 mt-1">{sku}</div>
-        <div className="mt-3 text-blue-600 font-semibold text-lg">Rp {price}</div>
+        <div className="flex mt-3 justify-between">
+        <div className=" text-blue-600 font-semibold text-lg">Rp {price}</div>
+        <Button onClick={onClick} className="border border-blue-300 text-white px-2 py-2 rounded-2xl bg-blue-500 cursor-pointer hover:bg-blue-400 hover:border-blue-400">Add To Cart</Button>
+        </div>
       </div>
     </div>
   );

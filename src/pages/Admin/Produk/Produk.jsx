@@ -11,7 +11,7 @@ const initialForm = {
   price: "",
   description: "",
   discount: "",
-  image: "",
+  imageUrl: "",
   sku: "",
   categoryId: "",
 };
@@ -24,6 +24,7 @@ const Produk = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [product, setProduct] = useState([]);
   const [productLoading, setProductLoading] = useState(true);
+  const [imageFile, setImageFile] = useState(null);
 
   const fetchProducts = async () => {
     setProductLoading(true);
@@ -55,6 +56,7 @@ const Produk = () => {
   const openCreateProduct = () => {
     resetForm();
     setShowProduct(true);
+    setImageFile(null);
   };
 
   const openEditProduct = (item) => {
@@ -64,7 +66,7 @@ const Produk = () => {
       price: item.price ?? "",
       description: item.description ?? "",
       discount: item.discount ?? "",
-      image: item.image ?? "",
+      imageUrl: item.imageUrl ?? "",
       sku: item.sku ?? "",
       categoryId: item.categoryId ?? "",
     });
@@ -87,35 +89,45 @@ const Produk = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setIsSubmitting(true);
 
-    try {
-      const payload = {
-        name: formData.name,
-        price: formData.price,
-        description: formData.description,
-        discount: formData.discount,
-        image: formData.image,
-        sku: formData.sku,
-        categoryId: formData.categoryId,
-      };
+  try {
+    const payload = new FormData();
+    payload.append("name", formData.name);
+    payload.append("price", formData.price);
+    payload.append("description", formData.description);
+    payload.append("discount", formData.discount);
+    payload.append("sku", formData.sku);
+    payload.append("categoryId", formData.categoryId);
 
-      if (editingProduct) {
-        await updateProduct(editingProduct.id, payload);
-      } else {
-        await createProduct(payload);
-      }
-
-      handleSaveSuccess();
-    } catch (err) {
-      console.error(err);
-      alert("Gagal menyimpan produk");
-    } finally {
-      setIsSubmitting(false);
+    if (imageFile) {
+      payload.append("image", imageFile);
     }
-  };
+
+    if (editingProduct) {
+      await updateProduct(editingProduct.id, payload);
+    } else {
+      await createProduct(payload);
+    }
+
+    handleSaveSuccess();
+  } catch (err) {
+    console.error(err);
+    alert("Gagal menyimpan produk");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+  const handleImageChange = (e) => {
+  const file = e.target.files[0];
+  console.log("File dipilih:", file);
+  if (file) {
+    setImageFile(file);
+  }
+};
 
   return (
     <SidebarAdmin>
@@ -146,7 +158,9 @@ const Produk = () => {
                       <p className="text-sm text-slate-500">Max 10MB, PNG, JPEG</p>
                       <input 
                         type="file"
+                        name="imageUrl"
                         className="mt-4 rounded-md border border-slate-300 bg-gray-300 px-5 py-2 text-sm font-medium text-slate-600 shadow-sm "
+                        onChange={handleImageChange}
                      />
                         
                         
