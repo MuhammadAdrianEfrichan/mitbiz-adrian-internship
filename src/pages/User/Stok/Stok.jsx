@@ -5,50 +5,44 @@ import { getPenstok } from "../../../services/penstok.service";
 import { getProduct } from "../../../services/product.service";
 import { formatTanggal } from "../../../utils/fromatDate";
 import { useSearchParams } from "react-router-dom";
-import { getMe, login } from "../../../services/auth.service";
+import { getStocks } from "../../../services/stock.service";
 const Stok = ()=>{
     const [penStok, setPenStok] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
-  const [outletId, setOutletId] = useState(null);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-        const [profileRes, productRes, penStokRes] = await Promise.all([
-            getMe(),
-            getProduct(),
-            getPenstok(),
-        ]);
+      const [productRes, penStokRes] = await Promise.all([
+        getProduct(),
+        getStocks(),
+      ]);
+      const productList = Array.isArray(productRes.data?.data)
+        ? productRes.data.data
+        : Array.isArray(productRes.data)
+        ? productRes.data
+        : [];
 
-        const currentOutletId = profileRes.data?.outletId ?? profileRes.data?.outlet?.id ?? null;
-        setOutletId(currentOutletId);
+      const penStokList = Array.isArray(penStokRes.data?.data)
+        ? penStokRes.data.data
+        : Array.isArray(penStokRes.data)
+        ? penStokRes.data
+        : [];
 
-        const productList = Array.isArray(productRes.data?.data)
-            ? productRes.data.data
-            : Array.isArray(productRes.data)
-            ? productRes.data
-            : [];
-
-        const penStokList = Array.isArray(penStokRes.data?.data)
-            ? penStokRes.data.data
-            : Array.isArray(penStokRes.data)
-            ? penStokRes.data
-            : [];
-
-        setProducts(productList);
-        setPenStok(penStokList);
+      setProducts(productList);
+      setPenStok(penStokList);
     } catch (err) {
-        console.error("Gagal mengambil data:", err);
-        setError(err.message);
-        setProducts([]);
-        setPenStok([]);
+      console.error("Gagal mengambil data:", err);
+      setError(err.message);
+      setProducts([]);
+      setPenStok([]);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-};
+  };
 
   useEffect(() => {
     fetchData();
@@ -77,71 +71,66 @@ const Stok = ()=>{
   }, [products]);
 
 const stockRows = useMemo(() => {
-    const rows = [];
+  const rows = [];
 
-    const selectedCategoryId = searchParams.get("categoryId") || "";
-    const selectedStatus = searchParams.get("status") || "";
-    const keyword = (searchParams.get("search") || "").trim().toLowerCase();
+  const selectedCategoryId = searchParams.get("categoryId") || "";
+  const selectedStatus = searchParams.get("status") || "";
+  const keyword = (searchParams.get("search") || "").trim().toLowerCase();
 
-    if (!outletId) return rows; 
+  products.forEach((product) => {
+    if (selectedCategoryId && product.category?.id !== selectedCategoryId) return;
 
-    products.forEach((product) => {
-        if (selectedCategoryId && product.category?.id !== selectedCategoryId) return;
 
-        const history = penStok.filter(
-            (item) => item.productId === product.id && item.outletId === outletId
-        );
+      const history = penStok.filter(
+        (item) => item.productId === product.id
+      );
 
-        if (history.length === 0) return;
+      if (history.length === 0) return;
 
-        const stokTersedia = history.reduce((total, item) => {
-            if (item.type === "IN") return total + item.quantity;
-            if (item.type === "OUT") return total - item.quantity;
-            if (item.type === "CORRECTION") return item.quantity;
-            return total;
-        }, 0);
+    const quantity = history.reduce((total, item) => total + (item.quantity ?? 0), 0);
 
-        const lastUpdate = history.reduce(
-            (latest, item) =>
-                new Date(item.createdAt) > new Date(latest) ? item.createdAt : latest,
-            history[0].createdAt
-        );
+      const lastUpdate = history.reduce(
+        (latest, item) =>
+          new Date(item.createdAt) > new Date(latest) ? item.createdAt : latest,
+        history[0].createdAt
+      );
 
-        const minStok = product.minStock ?? 10;
-        const status =
-            stokTersedia === 0 ? "Habis" : stokTersedia <= minStok ? "Menipis" : "Normal";
+      const minStok = product.minStock ?? 10;
+      const status =
+        quantity === 0 ? "Habis" : quantity <= minStok ? "Menipis" : "Normal";
 
-        if (selectedStatus && status !== selectedStatus) return;
+      // filter status (dropdown)
+      if (selectedStatus && status !== selectedStatus) return;
 
-        const row = {
-            id: `${product.id}-${outletId}`,
-            nama: product.name,
-            kategori: product.category?.name ?? "-",
-            stokTersedia,
-            minStok,
-            status,
-            tanggal: lastUpdate,
-        };
+      const row = {
+        id: product.id,
+        nama: product.name,
+        kategori: product.category?.name ?? "-",
+        quantity,
+        minStok,
+        status,
+        tanggal: lastUpdate,
+      };
 
-        if (keyword) {
-            const searchable = [
-                row.nama,
-                row.kategori,
-                row.status,
-                String(row.stokTersedia),
-                String(row.minStok),
-            ]
-                .join(" ")
-                .toLowerCase();
+      // filter search keseluruhan (nama produk, kategori, cabang, status, angka stok)
+      if (keyword) {
+        const searchable = [
+          row.nama,
+          row.kategori,
+          row.status,
+          String(row.quantity),
+          String(row.minStok),
+        ]
+          .join(" ")
+          .toLowerCase();
 
-            if (!searchable.includes(keyword)) return;
-        }
+        if (!searchable.includes(keyword)) return;
+      }
 
-        rows.push(row);
+      rows.push(row);
     });
-
-    return rows;
-}, [products, penStok, searchParams, outletId]);
+  return rows;
+}, [products, penStok, searchParams]);
 
   const summaryCards = useMemo(
     () => [
@@ -265,7 +254,7 @@ const stockRows = useMemo(() => {
                                 <tr key={row.id} className="border-t border-slate-200 bg-white">
                                   <td className="px-4 py-3 font-medium text-slate-700">{row.nama}</td>
                                   <td className="px-4 py-3">{row.kategori}</td>
-                                  <td className="px-4 py-3">{row.stokTersedia}</td>
+                                  <td className="px-4 py-3">{row.quantity}</td>
                                   <td className="px-4 py-3">{row.minStok}</td>
                                   <td className="px-4 py-3">
                                     <span
