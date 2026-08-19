@@ -67,10 +67,12 @@ const Login = ()=>{
         const role = data.data?.user?.role ?? data.user?.role;
         if (role === "STAFF") {
             navigate("/dasboard-kasir");
-        }  
-        if (role === "ADMIN"){
-            navigate("/home-admin");
+        } else{
+            navigate("/home-admin")
         }
+        // if (role === "ADMIN"){
+        //     navigate("/home-admin");
+        // }
         } catch (err) {
             setServerError(err.message || "Tidak bisa terhubung ke server");
         } finally {
