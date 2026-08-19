@@ -4,21 +4,48 @@ import InputSearch from "../../../components/ui/InputSearch";
 import ProductCard from "../../../components/fragments/User/ProductCard/ProductCard";
 import { BiDetail } from "react-icons/bi";
 import { PiBasket } from "react-icons/pi";
-import { useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { categoryProduct, getProduct } from "../../../services/product.service";
 import { FiRefreshCw, FiTrash2 } from "react-icons/fi";
-import { createTransactions, getMetodePembayaran, getPajak } from "../../../services/transaction.service";
+import { createTransactions, getMetodePembayaran, getTransaction } from "../../../services/transaction.service";
 import { useNotification } from "../../../components/ui/NotificationCenter";
 import PaymentModal from "../../../components/fragments/User/PaymentModal"
+import { AuthContext } from "../../../context/AuthContext";
+
+const OPEN_BILLS_STORAGE_KEY = "mitbiz-open-bills";
 
 const getDiscountRate = (discount) => {
     const rate = Number(discount);
     return Number.isFinite(rate) && rate > 0 && rate <= 100 ? rate : 0;
 };
 
+const unwrapSetting = (response) => response?.data?.data ?? response?.data ?? response ?? {};
+const findTaxSource = (value, visited = new Set()) => {
+    if (!value || typeof value !== "object" || visited.has(value)) return {};
+    visited.add(value);
+    const taxKeys = ["taxPercentage", "taxPercent", "taxRate", "rate", "pajakPercentage", "pajak"];
+    if (taxKeys.some((key) => value[key] !== undefined && value[key] !== null && value[key] !== "")) return value;
+    for (const key of ["tax", "taxSettings", "settings", "config", "summary", "transactionSummary", "business"]) {
+        const result = findTaxSource(value[key], visited);
+        if (Object.keys(result).length > 0) return result;
+    }
+    return {};
+};
+const getConfiguredTaxRate = (response) => {
+    const tax = findTaxSource(unwrapSetting(response));
+    const taxValue = tax.taxPercentage ?? tax.taxPercent ?? tax.rate ?? tax.taxRate ?? tax.pajakPercentage ?? tax.pajak;
+    if (taxValue === undefined || taxValue === null || taxValue === "") return null;
+    const enabled = tax.taxEnabled ?? tax.isTaxActive ?? tax.enableTax ?? tax.pajakEnabled ?? true;
+    const configuredTax = Number(taxValue);
+    return enabled && Number.isFinite(configuredTax)
+        ? (configuredTax > 1 ? configuredTax / 100 : configuredTax)
+        : 0;
+};
+
 const Transaksi = () => {
     const notification = useNotification();
+    const {user} = useContext(AuthContext);
     const [product, setProduct] = useState([]);
     const [totalProduct, setTotalProduct] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -32,6 +59,8 @@ const Transaksi = () => {
     const [orderType, setOrderType] = useState("DINE_IN"); 
     const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(null);
     const [submitting, setSubmitting] = useState(false);
+    const [customerName, setCustomerName] = useState("");
+    const [tableNumber, setTableNumber] = useState("");
 
 
 
@@ -87,15 +116,18 @@ const Transaksi = () => {
 
 
     useEffect(() => {
+        if(!user?.outletId){
+            return
+        }
     const fetchInitialSettings = async () => {
         try {
-            const [methodsRes, taxRes] = await Promise.all([
-                getMetodePembayaran(),
-                getPajak(),
+            const [methodsRes, transactionResult] = await Promise.all([
+                getMetodePembayaran(user.outletId),
+                getTransaction({ outletId: user.outletId }),
             ]);
             setPaymentMethods(methodsRes.data ?? []);
-            setTaxRate(taxRes.data?.rate ?? 0); 
-            
+            setTaxRate(getConfiguredTaxRate(transactionResult) ?? 0);
+
             if (methodsRes.data?.length > 0) {
                 setSelectedPaymentMethodId(methodsRes.data[0].id);
             }
@@ -104,7 +136,7 @@ const Transaksi = () => {
         }
     };
     fetchInitialSettings();
-}, []);
+}, [user]);
 
 
     const activeCategory = searchParams.get('categoryId');
@@ -186,25 +218,43 @@ const taxAmount = useMemo(() => taxableAmount * taxRate, [taxableAmount, taxRate
 const total = useMemo(() => taxableAmount + taxAmount, [taxableAmount, taxAmount]);
 
 
+    const buildTransactionPayload = (paymentStatus = "PAID") => ({
+        orderType,
+        customerName: customerName.trim(),
+        tableNumber: tableNumber.trim(),
+        ...(paymentStatus === "PAID" ? { paymentMethodId: selectedPaymentMethodId } : {}),
+        subtotal: subTotal,
+        globalDiscountAmount: totalDiscount,
+        taxPercentage: taxRate * 100,
+        taxAmount,
+        totalAmount: total,
+        amountPaid: paymentStatus === "OPEN" ? 0 : total,
+        paymentStatus,
+        items: cart.map((item) => ({
+            productId: item.id,
+            quantity: item.quantity,
+        })),
+    });
+
+    const clearTransaction = () => {
+        setCart([]);
+        setCustomerName("");
+        setTableNumber("");
+        setShowPaymentModal(false);
+    };
+
     const handleConfirmPayment = async () => {
+    if (!selectedPaymentMethodId) {
+        notification.error("Pilih metode pembayaran untuk menyelesaikan transaksi.");
+        return;
+    }
     setSubmitting(true);
     try {
-        const payload = {
-            orderType,
-            customerName: "daffa", // ganti sesuai input customer kalau ada
-            tableNumber: "12",     // ganti sesuai input meja kalau ada
-            paymentMethodId: selectedPaymentMethodId,
-            amountPaid: total,
-            items: cart.map((item) => ({
-                productId: item.id,
-                quantity: item.quantity,
-            })),
-        };
+        const payload = buildTransactionPayload();
 
         await createTransactions(payload);
 
-        setCart([]);
-        setShowPaymentModal(false);
+        clearTransaction();
         notification.success("Transaksi berhasil disimpan.");
     } catch (err) {
         console.error(err);
@@ -215,7 +265,37 @@ const total = useMemo(() => taxableAmount + taxAmount, [taxableAmount, taxAmount
 };
 
 const handleOpenBill = () => {
-    setShowPaymentModal(false);
+    if (!customerName.trim() || !tableNumber.trim()) {
+        notification.error("Nama pelanggan dan nomor meja wajib diisi untuk Open Bill.");
+        return;
+    }
+
+    setSelectedPaymentMethodId(null);
+    setSubmitting(true);
+    const payload = buildTransactionPayload("OPEN");
+    createTransactions(payload)
+        .then((response) => {
+            const bill = {
+                ...payload,
+                id: response.data?.id ?? response.data?.transaction?.id ?? `local-${Date.now()}`,
+                invoice: response.data?.invoice ?? response.data?.transaction?.invoice,
+                total,
+                subTotal,
+                totalDiscount,
+                taxAmount,
+                createdAt: new Date().toISOString(),
+                items: cart.map((item) => ({
+                    ...item,
+                    productId: item.id,
+                })),
+            };
+            const existingBills = JSON.parse(localStorage.getItem(OPEN_BILLS_STORAGE_KEY) || "[]");
+            localStorage.setItem(OPEN_BILLS_STORAGE_KEY, JSON.stringify([...existingBills, bill]));
+            clearTransaction();
+            notification.success("Open Bill berhasil disimpan.");
+        })
+        .catch((err) => notification.error(err.message || "Open Bill gagal disimpan."))
+        .finally(() => setSubmitting(false));
 };
 
 
@@ -405,6 +485,10 @@ const handleOpenBill = () => {
             onConfirm={handleConfirmPayment}
             onOpenBill={handleOpenBill}
             submitting={submitting}
+            customerName={customerName}
+            tableNumber={tableNumber}
+            onCustomerNameChange={setCustomerName}
+            onTableNumberChange={setTableNumber}
         />
     )}
         </div>

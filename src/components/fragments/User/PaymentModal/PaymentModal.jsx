@@ -21,6 +21,10 @@ const PaymentModal = ({
     onConfirm,
     onOpenBill,
     submitting,
+    customerName,
+    tableNumber,
+    onCustomerNameChange,
+    onTableNumberChange,
 }) => {
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -58,6 +62,27 @@ const PaymentModal = ({
                                 <span className="font-medium">Take Away</span>
                                 <span className="text-xs text-gray-400">Pesanan dibawa pulang</span>
                             </button>
+                        </div>
+
+                        <div className="grid grid-cols-[1.5fr_0.75fr] gap-3 mb-6">
+                            <label className="text-sm text-gray-600">
+                                Nama Pelanggan
+                                <input
+                                    value={customerName}
+                                    onChange={(event) => onCustomerNameChange(event.target.value)}
+                                    placeholder="e.g. John Doe"
+                                    className="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2.5 text-gray-800 outline-none focus:border-blue-500"
+                                />
+                            </label>
+                            <label className="text-sm text-gray-600">
+                                No. Meja
+                                <input
+                                    value={tableNumber}
+                                    onChange={(event) => onTableNumberChange(event.target.value)}
+                                    placeholder="e.g. 1"
+                                    className="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2.5 text-gray-800 outline-none focus:border-blue-500"
+                                />
+                            </label>
                         </div>
 
                         <p className="text-sm font-medium mb-2">Detail Transaksi ({cart.length})</p>
@@ -118,24 +143,48 @@ const PaymentModal = ({
                             </div>
                         </div>
 
-                        <p className="text-sm font-medium mb-3">Metode Pembayaran</p>
+                        <p className="mb-3 text-sm font-medium">Metode Pembayaran</p>
+                        <p className="mb-3 text-xs text-gray-500">Tidak wajib untuk Open Bill. Pilih metode hanya saat pelanggan membayar.</p>
                         <div className="grid grid-cols-2 gap-3 mb-6">
                             {paymentMethods.map((method) => (
                                 <button
                                     key={method.id}
+                                    type="button"
                                     onClick={() => setSelectedPaymentMethodId(method.id)}
-                                    className={`py-3 rounded-xl border-2 font-medium ${
+                                    className={`relative py-3 rounded-xl border-2 font-medium ${
                                         selectedPaymentMethodId === method.id
                                             ? "border-blue-500 bg-blue-50 text-blue-600"
                                             : "border-gray-200 text-gray-600"
                                     }`}
                                 >
                                     {method.name}
+                                    {selectedPaymentMethodId === method.id && (
+                                        <span
+                                            role="button"
+                                            tabIndex={0}
+                                            aria-label={`Hapus pilihan ${method.name}`}
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                setSelectedPaymentMethodId(null);
+                                            }}
+                                            onKeyDown={(event) => {
+                                                if (event.key === "Enter" || event.key === " ") {
+                                                    event.preventDefault();
+                                                    event.stopPropagation();
+                                                    setSelectedPaymentMethodId(null);
+                                                }
+                                            }}
+                                            className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white transition hover:bg-blue-800"
+                                        >
+                                            <FiX className="h-3.5 w-3.5" />
+                                        </span>
+                                    )}
                                 </button>
                             ))}
                         </div>
 
                         <button
+                            type="button"
                             onClick={onConfirm}
                             disabled={!selectedPaymentMethodId || submitting}
                             className="w-full bg-blue-600 text-white py-3 rounded-xl font-medium disabled:opacity-50 mb-3"
