@@ -2,14 +2,15 @@ import { FiEdit2, FiSearch, FiTrash2 } from "react-icons/fi";
 import { deletePembayaran, getPembayaran, searchPembayaran } from "../../../../services/pembayaran.service";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useNotification } from "../../../ui/NotificationCenter";
 
 
-const PembayaranAdmin = ({refreshKey, onEdit}) => {
+const PembayaranAdmin = ({refreshKey, onEdit, outlet=[]}) => {
+  const notification = useNotification();
     const [pembayaran, setPembayaran] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
       const [ searchParams, setSearchParams] = useSearchParams();
-
     const fetchPembayaran = async () => {
             setLoading(true);
             try {
@@ -35,13 +36,15 @@ const PembayaranAdmin = ({refreshKey, onEdit}) => {
         }, [refreshKey]); 
 
           const handleDelete = async (id) => {
-                if (!confirm("Yakin ingin menghapus metode pembayaran ini?")) return;
+              notification.confirm("Metode pembayaran yang dihapus tidak dapat dipulihkan.", async () => {
                 try {
-                    await deletePembayaran(id);
-                    fetchPembayaran();
+                  await deletePembayaran(id);
+                  fetchPembayaran();
+                  notification.success("Metode pembayaran berhasil dihapus.");
                 } catch (err) {
-                    alert(err.message);
+                  notification.error(err.message || "Gagal menghapus metode pembayaran.");
                 }
+              }, { actionLabel: "Hapus" });
             };
 
             //     useEffect(() => {
@@ -100,6 +103,7 @@ const PembayaranAdmin = ({refreshKey, onEdit}) => {
           <thead>
             <tr className="bg-slate-100 text-sm font-semibold text-slate-700">
               <th className="px-5 py-3">Metode Pembayaran</th>
+              <th className="px-5 py-3">Cabang</th>
               <th className="px-5 py-3">Status</th>
               <th className="px-5 py-3 text-center">Aksi</th>
             </tr>
@@ -108,6 +112,9 @@ const PembayaranAdmin = ({refreshKey, onEdit}) => {
             {pembayaran.map((metode) => (
               <tr key={metode.id} className="border-t border-slate-200 text-sm text-slate-700">
                 <td className="px-5 py-4">{metode.name}</td>
+                <td className="px-5 py-4">  {metode.outletPaymentMethods?.length > 0
+              ? metode.outletPaymentMethods.map((opm) => opm.outlet?.name).join(", ")
+              : "Semua Cabang"}</td>
                 <td className="px-5 py-4">
                   <span className="inline-flex rounded-md bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
                     {metode.isActive ? "Aktif" : "Nonaktif"}

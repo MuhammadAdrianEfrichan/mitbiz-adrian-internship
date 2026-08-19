@@ -7,6 +7,7 @@ import { tambahKasir, getKasir, updateKasir, deleteKasir, searchKasir } from "..
 import { createRoles, getRoles, updateRoles, deleteRoles } from "../../../services/role.service";
 import { FiPlus, FiX } from "react-icons/fi";
 import { useEffect, useState } from "react";
+import { useNotification } from "../../../components/ui/NotificationCenter";
 
 const initialKaryawanForm = {
     name: "",
@@ -23,6 +24,7 @@ const initialRoleForm = {
 };
 
 const Kasir = () => {
+    const notification = useNotification();
     // ===== Data referensi =====
     const [branches, setBranches] = useState([]);
     const [branchesLoading, setBranchesLoading] = useState(true);
@@ -36,7 +38,6 @@ const Kasir = () => {
     const [karyawanForm, setKaryawanForm] = useState(initialKaryawanForm);
     const [isSubmittingKaryawan, setIsSubmittingKaryawan] = useState(false);
 
-    // ===== Modal Role =====
     const [showRoleModal, setShowRoleModal] = useState(false);
     const [editingRole, setEditingRole] = useState(null);
     const [roleForm, setRoleForm] = useState(initialRoleForm);
@@ -132,8 +133,9 @@ const Kasir = () => {
             }
             handleCloseKaryawanModal();
             setRefreshKey((prev) => prev + 1);
+            notification.success(editingUser ? "Data karyawan berhasil diperbarui." : "Karyawan berhasil ditambahkan.");
         } catch (err) {
-            alert(err.message || "Gagal menyimpan data karyawan");
+            notification.error(err.message || "Gagal menyimpan data karyawan.");
             console.error(err);
         } finally {
             setIsSubmittingKaryawan(false);
@@ -196,8 +198,9 @@ const Kasir = () => {
             }
             handleCloseRoleModal();
             setRefreshKey((prev) => prev + 1);
+            notification.success(editingRole ? "Role berhasil diperbarui." : "Role berhasil ditambahkan.");
         } catch (err) {
-            alert(err.message || "Gagal menyimpan role");
+            notification.error(err.message || "Gagal menyimpan role.");
             console.error(err);
         } finally {
             setIsSubmittingRole(false);
@@ -205,13 +208,15 @@ const Kasir = () => {
     };
 
     const handleDeleteRole = async (role) => {
-        if (!confirm(`Yakin ingin menghapus role "${role.name}"?`)) return;
-        try {
-            await deleteRoles(role.id); // DELETE /roles/{id}
-            setRefreshKey((prev) => prev + 1);
-        } catch (err) {
-            alert(err.message || "Gagal menghapus role");
-        }
+        notification.confirm(`Role "${role.name}" dan hak aksesnya akan dihapus.`, async () => {
+            try {
+                await deleteRoles(role.id); // DELETE /roles/{id}
+                setRefreshKey((prev) => prev + 1);
+                notification.success("Role berhasil dihapus.");
+            } catch (err) {
+                notification.error(err.message || "Gagal menghapus role.");
+            }
+        }, { actionLabel: "Hapus" });
     };
 
     return (

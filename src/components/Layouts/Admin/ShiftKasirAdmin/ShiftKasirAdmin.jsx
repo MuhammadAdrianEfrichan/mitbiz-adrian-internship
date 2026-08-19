@@ -8,6 +8,7 @@ import {
   forceCloseShift,
 } from "../../../../services/shift..service"; 
 import { getBranches } from "../../../../services/branch.service"; // sesuaikan path & nama fungsi
+import { useNotification } from "../../../ui/NotificationCenter";
 
 const formatRupiah = (value) => `Rp ${Number(value ?? 0).toLocaleString("id-ID")}`;
 
@@ -19,6 +20,7 @@ const formatJam = (value) => {
 };
 
 const ShiftKasirAdmin = () => {
+  const notification = useNotification();
   const [outlets, setOutlets] = useState([]);
   const [outletId, setOutletId] = useState("");
   const [cashiers, setCashiers] = useState([]);
@@ -93,9 +95,10 @@ const fetchAll = async (id) => {
         await forceOpenShift(cashierId);
       }
       await fetchAll(outletId);
+      notification.success(isActive ? "Shift kasir berhasil diakhiri." : "Shift kasir berhasil dimulai.");
     } catch (err) {
       console.error("Gagal mengubah status shift:", err);
-      alert(err.message);
+      notification.error(err.message || "Gagal mengubah status shift.");
     } finally {
       setActionLoadingId(null);
     }

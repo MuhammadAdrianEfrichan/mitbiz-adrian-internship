@@ -1,22 +1,52 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNotification } from "../../../components/ui/NotificationCenter";
 import MainAdmin from "../../../components/fragments/Admin/MainAdmin";
 import SidebarAdmin from "../../../components/fragments/Admin/SidebarAdmin"
 import PembayaranAdmin from "../../../components/Layouts/Admin/PembayaranAdmin"
 import {FiPlus, FiX} from "react-icons/fi";
 import { Outlet } from "react-router-dom";
 import { createPembayaran, updatePembayaran } from "../../../services/pembayaran.service";
+import { getBranches } from "../../../services/branch.service";
 
 const initialForm = {
   name: "",
   type: "CASH",
   isActive: "true",
+  outletId: "",
 };
 const Pembayaran = ()=>{
+    const notification = useNotification();
     const [showPembayaran, setShowPembayaran] = useState(false);
     const [editingPembayaran, setEditingPembayaran] = useState(null);
     const [refreshKey, setRefreshKey] = useState(0);
     const [formData, setFormData] = useState(initialForm);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [outlet, setOutlet] = useState([]);
+      const [Loading, setLoading] = useState(true);
+
+
+    const fetchOutlets = async () => {
+        setLoading(true);
+        try {
+          const data = await getBranches();
+          const branchList = Array.isArray(data.data?.data)
+                ? data.data.data
+                : Array.isArray(data.data)
+                ? data.data
+                : [];
+                console.log("data outlet" ,branchList)
+          setOutlet(branchList);
+        } catch (err) {
+          console.error("Gagal mengambil daftar produk:", err);
+          setOutlet([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+        useEffect(() => {
+          fetchOutlets();
+        }, []);
 
     const resetForm = () => {
     setFormData(initialForm);
@@ -35,6 +65,7 @@ const Pembayaran = ()=>{
         name: pembayaran.name ?? "",
         type: pembayaran.type ?? pembayaran.type ?? "CASH",
         isActive: String(pembayaran.isActive ?? true),
+        outletId: pembayaran.outletPaymentMethods?.[0]?.outletId ?? "",
     });
     setShowPembayaran(true);
   };
@@ -64,6 +95,8 @@ const Pembayaran = ()=>{
         name: formData.name,
         isActive: formData.isActive === "true",
         type: formData.type,
+        outletIds: formData.outletId ? [formData.outletId] : [],
+        
         };
         console.log("PAYLOAD YANG DIKIRIM:", payload); 
   
@@ -77,9 +110,10 @@ const Pembayaran = ()=>{
         }
   
         handleSaveSuccess();
+        notification.success(editingPembayaran ? "Metode pembayaran berhasil diperbarui." : "Metode pembayaran berhasil ditambahkan.");
       } catch (error) {
         console.log("ERROR DETAIL:", error);
-        alert(error.message || "Gagal menyimpan pembayaran");
+        notification.error(error.message || "Gagal menyimpan pembayaran");
       } finally {
         setIsSubmitting(false);
       }
@@ -91,7 +125,7 @@ const Pembayaran = ()=>{
             <MainAdmin 
                 title="Manajemen Metode Pembayaran"
                 subtitle="Kelola Metode Pembayaran yang tersedia"
-                content={<PembayaranAdmin refreshKey={refreshKey} onEdit={openEditPembayaran}/>}
+                content={<PembayaranAdmin outlet={outlet} refreshKey={refreshKey} onEdit={openEditPembayaran}/>}
                 icon = {<FiPlus size={18} />}
                 buttonClassName = "inline-flex items-center gap-2 rounded-xl bg-[#1c86ef] px-4 py-3 text-base font-medium text-white shadow-sm transition hover:bg-[#1779dc]"
                 buttonLabel = "Tambah Metode Pembayaran"
@@ -146,6 +180,25 @@ const Pembayaran = ()=>{
                                 >
                                 <option value="true">Aktif</option>
                                 <option value="false">Nonaktif</option>
+                                </select>
+                            </label>
+                            <label className="block text-sm font-medium text-slate-700">
+                                <span className="mb-2 block">Cabang</span>
+                                <select
+                                name="outletId"
+                                value={formData.outletId}
+                                onChange={handleChange}
+                                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-[#1c86ef] focus:bg-white"
+                                >
+                                <option value="">semua cabang</option>
+                                {outlet.map((cabang)=>{
+                                  return (
+                                    <option key={cabang.id} value={cabang.id}>
+                                        {cabang.name}
+                                    </option>
+                                );
+                                })}
+                                
                                 </select>
                             </label>
             

@@ -1,20 +1,26 @@
 import { useNavigate } from "react-router-dom";
 import UseAuth from "../../../hooks/UseAuth";
 import { logout } from "../../../../services/auth.service";
+import { useNotification } from "../../../ui/NotificationCenter";
 
 const ProfileCard = ()=>{
 
     const { user, setUser } = UseAuth();
     const navigate = useNavigate();
+    const notification = useNotification();
 
     const handleLogout = async () => {
-        try {
-            await logout();
-            setUser(null);
-            navigate("/");
-        } catch (err) {
-            console.error("Logout gagal:", err);
-        }
+        notification.confirm("Anda akan keluar dari akun ini.", async () => {
+            try {
+                await logout();
+                setUser(null);
+                notification.success("Anda berhasil logout.");
+                navigate("/");
+            } catch (err) {
+                notification.error(err.message || "Logout gagal.");
+                console.error("Logout gagal:", err);
+            }
+        }, { actionLabel: "Logout" });
     };
 
     const initial = user?.name?.charAt(0).toUpperCase() ?? "?";

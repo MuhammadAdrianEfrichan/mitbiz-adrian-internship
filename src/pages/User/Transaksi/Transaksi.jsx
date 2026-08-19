@@ -7,16 +7,32 @@ import { PiBasket } from "react-icons/pi";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { categoryProduct, getProduct } from "../../../services/product.service";
+import { FiRefreshCw, FiTrash2 } from "react-icons/fi";
+import { createTransactions, getMetodePembayaran, getPajak } from "../../../services/transaction.service";
+import { useNotification } from "../../../components/ui/NotificationCenter";
+import PaymentModal from "../../../components/fragments/User/PaymentModal"
 
-
+const getDiscountRate = (discount) => {
+    const rate = Number(discount);
+    return Number.isFinite(rate) && rate > 0 && rate <= 100 ? rate : 0;
+};
 
 const Transaksi = () => {
+    const notification = useNotification();
     const [product, setProduct] = useState([]);
     const [totalProduct, setTotalProduct] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [ searchParams, setSearchParams] = useSearchParams();
     const [allProducts, setAllProducts] = useState([]);
+    const [cart, setCart] = useState([]);
+    const [paymentMethods, setPaymentMethods] = useState([]);
+    const [taxRate, setTaxRate] = useState(0);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [orderType, setOrderType] = useState("DINE_IN"); 
+    const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(null);
+    const [submitting, setSubmitting] = useState(false);
+
 
 
     const fetchProduct = async () => {
@@ -69,6 +85,28 @@ const Transaksi = () => {
     return Object.values(map);
 }, [allProducts]);
 
+
+    useEffect(() => {
+    const fetchInitialSettings = async () => {
+        try {
+            const [methodsRes, taxRes] = await Promise.all([
+                getMetodePembayaran(),
+                getPajak(),
+            ]);
+            setPaymentMethods(methodsRes.data ?? []);
+            setTaxRate(taxRes.data?.rate ?? 0); 
+            
+            if (methodsRes.data?.length > 0) {
+                setSelectedPaymentMethodId(methodsRes.data[0].id);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+    fetchInitialSettings();
+}, []);
+
+
     const activeCategory = searchParams.get('categoryId');
 
     const handleFilterCategory = (categoryName) => {
@@ -82,6 +120,103 @@ const Transaksi = () => {
             return params;
         });
     };
+
+    const handleAddToCart = (product) => {
+    setCart((prevCart) => {
+        const existingItem = prevCart.find((item) => item.id === product.id);
+
+        if (existingItem) {
+            return prevCart.map((item) =>
+                item.id === product.id
+                    ? { ...item, quantity: item.quantity + 1 }
+                    : item
+            );
+        }
+
+        return [...prevCart, { ...product, quantity: 1 }];
+    });
+};
+
+const handleIncreaseQty = (productId) => {
+    setCart((prevCart) =>
+        prevCart.map((item) =>
+            item.id === productId ? { ...item, quantity: item.quantity + 1 } : item
+        )
+    );
+};
+
+const handleDecreaseQty = (productId) => {
+    setCart((prevCart) =>
+        prevCart
+            .map((item) =>
+                item.id === productId ? { ...item, quantity: item.quantity - 1 } : item
+            )
+            .filter((item) => item.quantity > 0) 
+    );
+};
+
+const handleRemoveFromCart = (productId) => {
+    const item = cart.find((cartItem) => cartItem.id === productId);
+    notification.confirm(`Hapus ${item?.name || "produk ini"} dari keranjang?`, () => {
+        setCart((prevCart) => prevCart.filter((cartItem) => cartItem.id !== productId));
+        notification.success("Produk dihapus dari keranjang.");
+    }, { actionLabel: "Hapus" });
+};
+
+const handleResetCart = () => {
+    notification.confirm("Semua produk di keranjang akan dihapus.", () => {
+        setCart([]);
+        notification.success("Keranjang berhasil dikosongkan.");
+    }, { actionLabel: "Kosongkan" });
+};
+
+const subTotal = useMemo(
+    () => cart.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0),
+    [cart]
+);
+const totalDiscount = useMemo(() => {
+    return cart.reduce((sum, item) => {
+        const itemTotal = Number(item.price) * item.quantity;
+        return sum + itemTotal * (getDiscountRate(item.discount) / 100);
+    }, 0);
+}, [cart]);
+
+const taxableAmount = useMemo(() => subTotal - totalDiscount, [subTotal, totalDiscount]);
+const taxAmount = useMemo(() => taxableAmount * taxRate, [taxableAmount, taxRate]);
+const total = useMemo(() => taxableAmount + taxAmount, [taxableAmount, taxAmount]);
+
+
+    const handleConfirmPayment = async () => {
+    setSubmitting(true);
+    try {
+        const payload = {
+            orderType,
+            customerName: "daffa", // ganti sesuai input customer kalau ada
+            tableNumber: "12",     // ganti sesuai input meja kalau ada
+            paymentMethodId: selectedPaymentMethodId,
+            amountPaid: total,
+            items: cart.map((item) => ({
+                productId: item.id,
+                quantity: item.quantity,
+            })),
+        };
+
+        await createTransactions(payload);
+
+        setCart([]);
+        setShowPaymentModal(false);
+        notification.success("Transaksi berhasil disimpan.");
+    } catch (err) {
+        console.error(err);
+        notification.error(err.message || "Transaksi gagal disimpan. Silakan coba lagi.");
+    } finally {
+        setSubmitting(false);
+    }
+};
+
+const handleOpenBill = () => {
+    setShowPaymentModal(false);
+};
 
 
     return (
@@ -138,42 +273,140 @@ const Transaksi = () => {
                     {/* Product grid */}
                     <div className="grid grid-cols-3 gap-6">
                         {product.map((p) => (
-                            <ProductCard key={p.id} image={p.imageUrl} title={p.name} sku={p.sku} price={p.price} />
+                            <ProductCard
+                                key={p.id}
+                                image={p.imageUrl}
+                                title={p.name}
+                                sku={p.sku}
+                                price={p.price}
+                                discount={p.discount}
+                                onClick={() => handleAddToCart(p)}
+                            />
                             
                         ))}
                     </div>
                 </div>
 
                 {/* Sidebar / Detail Transaksi */}
-                <div className="w-[30%] border border-gray-400 mt-10 h-180 rounded-2xl fixed right-0 bg-white">
-                    <div className="flex text-2xl gap-5 font-bold py-5 px-10 border-b border-gray-300 ">
-                        <BiDetail className="w-8 h-8" />
-                        <h3> Detail Transaksi (0)</h3>
-                    </div>
-                    <div className="flex flex-col gap-5 py-20 justify-center items-center text-gray-600">
-                        <PiBasket className="w-10 h-10" />
-                        <h3 className="text-xl ">Keranjang Kosong</h3>
-                    </div>
-                    <div className="border flex flex-col gap-5 p-5 mx-5 rounded-xl">
-                        <div className="flex justify-between">
-                            <span>Sub Total</span>
-                            <span>Rp.0</span>
+               <div className="w-[30%] border border-gray-400 mt-10 h-180 rounded-2xl fixed right-0 bg-white overflow-y-auto">
+    <div className="flex items-center justify-between py-5 px-10 border-b border-gray-300">
+        <div className="flex text-2xl gap-5 font-bold">
+            <BiDetail className="w-8 h-8" />
+            <h3>Detail Transaksi ({cart.length})</h3>
+        </div>
+        {cart.length > 0 && (
+            <button
+                onClick={handleResetCart}
+                className="text-sm text-gray-500 flex items-center gap-1 cursor-pointer"
+            >
+                <FiRefreshCw size={20} /> <span className="text-xl">Reset</span>
+            </button>
+        )}
+    </div>
+
+    {cart.length === 0 ? (
+        <div className="flex flex-col gap-5 py-20 justify-center items-center text-gray-600">
+            <PiBasket className="w-10 h-10" />
+            <h3 className="text-xl">Keranjang Kosong</h3>
+        </div>
+    ) : (
+        <div className="flex flex-col gap-4 p-5">
+            {cart.map((item) => (
+                <div key={item.id} className="border-b border-gray-200 pb-3">
+                    <div className="flex justify-between items-start">
+                        <div className="flex gap-3">
+                            <img
+                                src={item.imageUrl}
+                                alt={item.name}
+                                className="w-12 h-12 rounded-lg object-cover"
+                            />
+                            <div>
+                                <p className="font-semibold">{item.name}</p>
+                                {getDiscountRate(item.discount) > 0 ? (
+                                    <div className="flex items-center gap-2 text-xs">
+                                        <span className="text-slate-400 line-through">
+                                            Rp{Number(item.price).toLocaleString("id-ID")}
+                                        </span>
+                                        <span className="rounded-md bg-red-100 px-2 py-1 font-semibold text-red-600">
+                                            -{getDiscountRate(item.discount)}%
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-gray-400">
+                                        Rp{Number(item.price).toLocaleString("id-ID")}
+                                    </p>
+                                )}
+                            </div>
                         </div>
-                        <div className="flex justify-between">
-                            <span>Pajak 12%</span>
-                            <span>Rp.0</span>
-                        </div>
-                        <hr />
-                        <div className="flex justify-between font-bold text-2xl py-3">
-                            <span>Total</span>
-                            <span>Rp.0</span>
-                        </div>
+                        <button onClick={() => handleRemoveFromCart(item.id)}>
+                            <FiTrash2 className="text-orange-500 cursor-pointer" size={20}/>
+                        </button>
                     </div>
-                    <div className="mx-5 mt-5">
-                        <ButtonLogin type="">Proses Pembayaran</ButtonLogin>
+
+                    <div className="flex justify-between items-center mt-2">
+                        <span>
+                            Rp{(
+                                (Number(item.price) -
+                                    (Number(item.price) * getDiscountRate(item.discount)) / 100) *
+                                item.quantity
+                            ).toLocaleString("id-ID")}
+                        </span>
+                        <div className="flex items-center gap-2 border rounded-lg px-2">
+                            <button onClick={() => handleIncreaseQty(item.id)} className="cursor-pointer">+</button>
+                            <span>{item.quantity}</span>
+                            <button onClick={() => handleDecreaseQty(item.id)} className="cursor-pointer">-</button>
+                        </div>
                     </div>
                 </div>
+            ))}
+        </div>
+    )}
+
+    <div className="border flex flex-col gap-5 p-5 mx-5 rounded-xl">
+        <div className="flex justify-between">
+            <span>Sub Total</span>
+            <span>Rp{subTotal.toLocaleString("id-ID")}</span>
+        </div>
+        <div className="flex justify-between">
+            <span>Pajak {(taxRate * 100).toFixed(0)}%</span>
+            <span>Rp{taxAmount.toLocaleString("id-ID")}</span>
+        </div>
+        <hr />
+        <div className="flex justify-between font-bold text-2xl py-3">
+            <span>Total</span>
+            <span>Rp{total.toLocaleString("id-ID")}</span>
+        </div>
+    </div>
+
+    <div className="mx-5 mt-5">
+    <ButtonLogin type="" disabled={cart.length === 0} onClick={() => setShowPaymentModal(true)}>
+        Proses Pembayaran
+    </ButtonLogin>
+</div>
+</div>
             </div>
+            {showPaymentModal && (
+            <PaymentModal
+            cart={cart}
+            orderType={orderType}
+            setOrderType={setOrderType}
+            subTotal={subTotal}
+            totalDiscount={totalDiscount}
+            taxAmount={taxAmount}
+            taxRate={taxRate}
+            total={total}
+            paymentMethods={paymentMethods}
+            selectedPaymentMethodId={selectedPaymentMethodId}
+            setSelectedPaymentMethodId={setSelectedPaymentMethodId}
+            onIncreaseQty={handleIncreaseQty}
+            onDecreaseQty={handleDecreaseQty}
+            onRemoveItem={handleRemoveFromCart}
+            onClose={() => setShowPaymentModal(false)}
+            onConfirm={handleConfirmPayment}
+            onOpenBill={handleOpenBill}
+            submitting={submitting}
+        />
+    )}
         </div>
     );
 };

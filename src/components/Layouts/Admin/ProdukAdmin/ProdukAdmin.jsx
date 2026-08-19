@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { FiEdit2, FiPackage, FiSearch, FiTrash2 } from "react-icons/fi";
 import { categoryProduct, deleteProduct, getProduct, searchProduct } from "../../../../services/product.service";
 import { useSearchParams } from "react-router-dom";
+import { useNotification } from "../../../ui/NotificationCenter";
 
 
 
 const ProdukAdmin = ({refreshKey, onEdit, category=[]}) => {
+  const notification = useNotification();
   const [product, setProduct] = useState([]);
   const [totalProduct, setTotalProduct] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -70,13 +72,15 @@ const handleSearch = (value) => {
 };
 
       const handleDelete = async (id) => {
-              if (!confirm("Yakin ingin menghapus cabang ini?")) return;
+            notification.confirm("Produk yang dihapus tidak dapat dipulihkan.", async () => {
               try {
-                  await deleteProduct(id);
-                  fetchProduct();
+                await deleteProduct(id);
+                fetchProduct();
+                notification.success("Produk berhasil dihapus.");
               } catch (err) {
-                  alert(err.message);
+                notification.error(err.message || "Gagal menghapus produk.");
               }
+            }, { actionLabel: "Hapus" });
           };
 
   

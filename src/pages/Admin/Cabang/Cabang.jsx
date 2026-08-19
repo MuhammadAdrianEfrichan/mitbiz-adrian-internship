@@ -4,6 +4,7 @@ import CabangAdmin from "../../../components/Layouts/Admin/CabangAdmin";
 import { createBranch, updateBranch } from "../../../services/branch.service";
 import { FiPlus, FiX } from "react-icons/fi";
 import { useState } from "react";
+import { useNotification } from "../../../components/ui/NotificationCenter";
 
 const initialForm = {
   name: "",
@@ -13,6 +14,7 @@ const initialForm = {
 };
 
 const Cabang = () => {
+  const notification = useNotification();
   const [showCabang, setShowCabang] = useState(false);
   const [editingBranch, setEditingBranch] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -79,9 +81,10 @@ const Cabang = () => {
       }
 
       handleSaveSuccess();
+      notification.success(editingBranch ? "Cabang berhasil diperbarui." : "Cabang berhasil ditambahkan.");
     } catch (error) {
       console.log("ERROR DETAIL:", error);
-      alert(error.message || "Gagal menyimpan cabang");
+      notification.error(error.message || "Gagal menyimpan cabang");
     } finally {
       setIsSubmitting(false);
     }

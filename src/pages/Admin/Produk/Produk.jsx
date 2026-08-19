@@ -5,6 +5,7 @@ import { FiPlus, FiUpload, FiX } from "react-icons/fi";
 import { useEffect, useState } from "react";
 import { createProduct, getProduct, updateProduct } from "../../../services/product.service";
 import { getCategory } from "../../../services/category.service";
+import { useNotification } from "../../../components/ui/NotificationCenter";
 
 const initialForm = {
   name: "",
@@ -17,6 +18,7 @@ const initialForm = {
 };
 
 const Produk = () => {
+  const notification = useNotification();
   const [showProduct, setShowProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [formData, setFormData] = useState(initialForm);
@@ -113,9 +115,10 @@ const Produk = () => {
     }
 
     handleSaveSuccess();
+    notification.success(editingProduct ? "Produk berhasil diperbarui." : "Produk berhasil ditambahkan.");
   } catch (err) {
     console.error(err);
-    alert("Gagal menyimpan produk");
+    notification.error(err.message || "Gagal menyimpan produk.");
   } finally {
     setIsSubmitting(false);
   }

@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { FiEdit2, FiSearch, FiTrash2, FiUsers, FiPlus } from "react-icons/fi";
 import { useSearchParams } from "react-router-dom";
 import { getKasir, searchKasir, deleteKasir } from "../../../../services/kasir.service";
+import { useNotification } from "../../../ui/NotificationCenter";
 
 const KasirAdmin = ({
     refreshKey,
@@ -13,6 +14,7 @@ const KasirAdmin = ({
     roles = [],
     rolesLoading = false,
 }) => {
+    const notification = useNotification();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -54,13 +56,15 @@ const KasirAdmin = ({
     const selectedRole = roles.find((r) => r.id === selectedRoleId);
 
     const handleDelete = async (id) => {
-        if (!confirm("Yakin ingin menghapus karyawan ini?")) return;
-        try {
-            await deleteKasir(id);
-            fetchUsers();
-        } catch (err) {
-            alert(err.message);
-        }
+        notification.confirm("Data karyawan yang dihapus tidak dapat dipulihkan.", async () => {
+            try {
+                await deleteKasir(id);
+                fetchUsers();
+                notification.success("Karyawan berhasil dihapus.");
+            } catch (err) {
+                notification.error(err.message || "Gagal menghapus karyawan.");
+            }
+        }, { actionLabel: "Hapus" });
     };
 
     const handleSearch = (value) => {

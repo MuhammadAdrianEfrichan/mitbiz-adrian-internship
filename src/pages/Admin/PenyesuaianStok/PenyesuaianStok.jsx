@@ -7,6 +7,7 @@ import { getCategory } from "../../../services/category.service";
 import { useEffect, useState } from "react";
 import { getBranches } from "../../../services/branch.service";
 import { createPenstok } from "../../../services/penstok.service";
+import { useNotification } from "../../../components/ui/NotificationCenter";
 
 const initialForm = {
   type: "",
@@ -16,6 +17,7 @@ const initialForm = {
   productId: "",
 };
 const PenyesuaianStok = () => {
+  const notification = useNotification();
 
     const [showProduct, setShowProduct] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
@@ -102,7 +104,7 @@ useEffect(() => {
       e.preventDefault();
       const quantityNumber = Number(formData.quantity);
       if (!formData.quantity || isNaN(quantityNumber) || quantityNumber <= 0) {
-      alert("Jumlah harus berupa angka lebih dari 0");
+      notification.warning("Jumlah harus berupa angka lebih dari 0.");
       return;
   }
       setIsSubmitting(true);
@@ -120,9 +122,10 @@ useEffect(() => {
         console.log(payload);
         await createPenstok(payload);
         handleSaveSuccess();
+        notification.success("Penyesuaian stok berhasil disimpan.");
       } catch (err) {
         console.error(err);
-        alert("Gagal menyimpan produk");
+        notification.error(err.message || "Gagal menyimpan penyesuaian stok.");
       } finally {
         setIsSubmitting(false);
       }

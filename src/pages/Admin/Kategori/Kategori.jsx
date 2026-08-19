@@ -3,6 +3,7 @@ import MainAdmin from "../../../components/fragments/Admin/MainAdmin";
 import KategoriAdmin from "../../../components/Layouts/Admin/KategoriAdmin";
 import {FiPlus, FiX} from "react-icons/fi";
 import { useState } from "react";
+import { useNotification } from "../../../components/ui/NotificationCenter";
 import { createCategory, updateCategory } from "../../../services/category.service";
 
 const initialForm = {
@@ -12,6 +13,7 @@ const initialForm = {
 };
 
 const Kategori = () => {
+  const notification = useNotification();
     const [showCategory, setShowCategory] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
     const [refreshKey, setRefreshKey] = useState(0);
@@ -76,9 +78,10 @@ const Kategori = () => {
         }
   
         handleSaveSuccess();
+        notification.success(editingCategory ? "Kategori berhasil diperbarui." : "Kategori berhasil ditambahkan.");
       } catch (error) {
         console.log("ERROR DETAIL:", error);
-        alert(error.message || "Gagal menyimpan Category");
+        notification.error(error.message || "Gagal menyimpan kategori");
       } finally {
         setIsSubmitting(false);
       }

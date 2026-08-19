@@ -5,8 +5,10 @@ import StatistikCard from '../../../components/fragments/User/StatistikCard';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { getShiftActive, getShiftClose, getShiftOpen, getShiftToday } from '../../../services/shift..service';
+import { useNotification } from '../../../components/ui/NotificationCenter';
 
 const Home = () => {
+    const notification = useNotification();
     const now = UseDateTime();
     const navigate = useNavigate();
 
@@ -59,9 +61,10 @@ const Home = () => {
         try {
             const res = await getShiftOpen();
             setShift(res.data ?? null);
+            notification.success("Shift berhasil dimulai.");
         } catch (err) {
             const message = err.message || 'Gagal memulai shift';
-            alert(message);
+            notification.error(message);
         } finally {
             setActionLoading(false);
         }
@@ -69,20 +72,20 @@ const Home = () => {
 
     const handleAkhiriShift = async () => {
         if (!shift?.id) return;
-        const confirmClose = window.confirm('Yakin ingin mengakhiri shift?');
-        if (!confirmClose) return;
-
-        setActionLoading(true);
-        try {
-            await getShiftClose(shift.id);
-            setShift(null);
-        } catch (err) {
-            const message = err.message || 'Gagal mengakhiri shift';
-            alert(message);
-            console.log(err.message);
-        } finally {
-            setActionLoading(false);
-        }
+        notification.confirm('Transaksi baru tidak dapat dilakukan setelah shift diakhiri.', async () => {
+            setActionLoading(true);
+            try {
+                await getShiftClose(shift.id);
+                setShift(null);
+                notification.success("Shift berhasil diakhiri.");
+            } catch (err) {
+                const message = err.message || 'Gagal mengakhiri shift';
+                notification.error(message);
+                console.log(err.message);
+            } finally {
+                setActionLoading(false);
+            }
+        }, { actionLabel: "Akhiri shift" });
     };
     const handleBuatTransaksi = () => {
     if (!shift) return;

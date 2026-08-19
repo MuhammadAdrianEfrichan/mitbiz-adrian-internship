@@ -1,10 +1,12 @@
 import { FiEdit2, FiEye, FiTrash2, FiBriefcase, FiCheckCircle, FiXCircle } from "react-icons/fi";
 import { deleteBranch, getBranches } from "../../../../services/branch.service";
 import { useEffect, useState } from "react";
+import { useNotification } from "../../../ui/NotificationCenter";
 
 
 
 const CabangAdmin = ({refreshKey, onEdit}) => {
+  const notification = useNotification();
   
 
     const [branches, setBranches] = useState([]);
@@ -44,13 +46,15 @@ const CabangAdmin = ({refreshKey, onEdit}) => {
     }, [refreshKey]); 
 
       const handleDelete = async (id) => {
-        if (!confirm("Yakin ingin menghapus cabang ini?")) return;
-        try {
+        notification.confirm("Cabang yang dihapus tidak dapat dipulihkan.", async () => {
+          try {
             await deleteBranch(id);
             fetchBranches();
-        } catch (err) {
-            alert(err.message);
-        }
+            notification.success("Cabang berhasil dihapus.");
+          } catch (err) {
+            notification.error(err.message || "Gagal menghapus cabang.");
+          }
+        }, { actionLabel: "Hapus" });
     };
 
 

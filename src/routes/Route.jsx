@@ -76,7 +76,7 @@ const routes =[
     // Admin
     {
         path: '/home-admin',
-        element : <ProtectedRoute allowedRoles={[""]}>
+        element : <ProtectedRoute allowedRoles={["ADMIN", "SUPERVISOR"]}>
                     <HomeAdmin />
                 </ProtectedRoute>,
         children: [

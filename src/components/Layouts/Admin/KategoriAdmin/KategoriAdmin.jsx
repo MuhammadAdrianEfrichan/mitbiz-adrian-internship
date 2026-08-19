@@ -1,10 +1,12 @@
 import { FiEdit2, FiSearch, FiTrash2 } from "react-icons/fi";
 import { deleteCategory, getCategory } from "../../../../services/category.service";
 import { useEffect, useState } from "react";
+import { useNotification } from "../../../ui/NotificationCenter";
 
 
 
 const KategoriAdmin = ({refreshKey, onEdit}) => {
+  const notification = useNotification();
         const [categories, setCategories] = useState([]);
         const [loading, setLoading] = useState(true);
         const [error, setError] = useState("");
@@ -30,13 +32,15 @@ const KategoriAdmin = ({refreshKey, onEdit}) => {
 
 
             const handleDelete = async (id) => {
-                    if (!confirm("Yakin ingin menghapus kategori ini?")) return;
-                    try {
-                        await deleteCategory(id);
-                        fetchCategories();
-                    } catch (err) {
-                        alert(err.message);
-                    }
+                notification.confirm("Kategori yang dihapus tidak dapat dipulihkan.", async () => {
+                  try {
+                    await deleteCategory(id);
+                    fetchCategories();
+                    notification.success("Kategori berhasil dihapus.");
+                  } catch (err) {
+                    notification.error(err.message || "Gagal menghapus kategori.");
+                  }
+                }, { actionLabel: "Hapus" });
                 };
 
     if (loading) return <p>Memuat data cabang...</p>;
