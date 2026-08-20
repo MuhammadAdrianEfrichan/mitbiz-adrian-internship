@@ -9,10 +9,27 @@ import { useNotification } from "../../../ui/NotificationCenter";
 const ProdukAdmin = ({refreshKey, onEdit, category=[]}) => {
   const notification = useNotification();
   const [product, setProduct] = useState([]);
-  const [totalProduct, setTotalProduct] = useState([]);
+  const [totalProduct, setTotalProduct] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [ searchParams, setSearchParams] = useSearchParams();
+
+  const setProductData = (response) => {
+    const products = Array.isArray(response)
+      ? response
+      : Array.isArray(response?.data)
+        ? response.data
+        : Array.isArray(response?.data?.data)
+          ? response.data.data
+          : [];
+    const total = response?.total
+      ?? response?.data?.total
+      ?? response?.data?.data?.total
+      ?? products.length;
+
+    setProduct(products);
+    setTotalProduct(Number(total) || 0);
+  };
 
   const fetchProduct = async () => {
           setLoading(true);
@@ -20,7 +37,7 @@ const ProdukAdmin = ({refreshKey, onEdit, category=[]}) => {
               const data = await getProduct();
               // console.warn("🔥 RESPONSE Product:", data);
               // console.log("RESPONSE Product:", JSON.stringify(data, null, 2)); 
-              setProduct(data.data ??[]);
+              setProductData(data);
           } catch (err) {
               setError(err.message);
           } finally {
@@ -38,7 +55,7 @@ const ProdukAdmin = ({refreshKey, onEdit, category=[]}) => {
     try {
       const keyword = searchParams.get('search');
       const result =( keyword) ? await searchProduct(keyword) : await getProduct();
-      setProduct(result.data ?? []);
+      setProductData(result);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -54,7 +71,7 @@ const ProdukAdmin = ({refreshKey, onEdit, category=[]}) => {
     try {
       const keyword = searchParams.get('category');
       const result =( keyword) ? await categoryProduct(keyword) : await getProduct();
-      setProduct(result.data ?? []);
+      setProductData(result);
     } catch (err) {
       setError(err.message);
     } finally {

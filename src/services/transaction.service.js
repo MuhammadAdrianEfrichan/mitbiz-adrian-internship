@@ -35,7 +35,7 @@ export const getPajak= async () => {
         method: "GET",
         credentials: "include",
     });
-    console.log("Status:", res.status); 
+    console.log("Status pajak:", res.status); 
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Gagal mengambil data Pembayaran");
     return data;
@@ -45,8 +45,7 @@ export const getMetodePembayaran= async (id) => {
     const res = await fetch(`${environment.API_URL}/outlets/${id}/payment-methods`, {
         method: "GET",
         credentials: "include",
-    });
-    console.log("Status:", res.status);     
+    });     
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Gagal mengambil data Pembayaran");
     return data;

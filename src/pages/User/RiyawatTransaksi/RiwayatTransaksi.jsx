@@ -4,6 +4,7 @@ import InputSearch from "../../../components/ui/InputSearch"
 import { getTransaction } from "../../../services/transaction.service";
 import { getBranches } from "../../../services/branch.service";
 import { getSetting } from "../../../services/setting.service";
+import { getMe } from "../../../services/auth.service";
 import { AuthContext } from "../../../context/AuthContext";
 import { FiEye, FiPrinter, FiX } from "react-icons/fi";
 
@@ -28,17 +29,69 @@ const statusLabel = (status) => ({
     VOID: "Dibatalkan",
 })[String(status ?? "").toUpperCase()] ?? status ?? "-";
 
-const getTransactionItems = (transaction) => (
-    transaction.items ?? transaction.transactionItems ?? transaction.details ?? []
-);
+const getTransactionItems = (transaction) => {
+    const items = transaction.items
+        ?? transaction.transactionItems
+        ?? transaction.transaction_items
+        ?? transaction.details
+        ?? transaction.orderItems
+        ?? transaction.order_items
+        ?? transaction.lines
+        ?? transaction.products
+        ?? transaction.transactionProducts
+        ?? [];
+    return Array.isArray(items) ? items : [];
+};
 
-const getItemName = (item) => item.product?.name ?? item.productName ?? item.name ?? "Produk";
-const getItemPrice = (item) => item.price ?? item.unitPrice ?? item.product?.price ?? 0;
+const getItemName = (item) => item.product?.name
+    ?? item.productSnapshot?.name
+    ?? item.productName
+    ?? item.name
+    ?? "Produk";
+const getItemQuantity = (item) => Number(item.quantity ?? item.qty ?? item.amount ?? item.quantity_sold ?? 0);
+const getItemPrice = (item) => Number(item.price
+    ?? item.unitPrice
+    ?? item.unit_price
+    ?? item.priceAtSale
+    ?? item.price_at_sale
+    ?? item.sellingPrice
+    ?? item.selling_price
+    ?? item.product?.price
+    ?? item.productSnapshot?.price
+    ?? 0);
+const getItemTotal = (item) => Number(item.lineTotal
+    ?? item.line_total
+    ?? item.totalPrice
+    ?? item.total_price
+    ?? item.subtotal
+    ?? getItemPrice(item) * getItemQuantity(item));
 const getPaymentName = (transaction) => transaction.paymentMethod?.name
     ?? transaction.paymentMethodName
     ?? (transaction.paymentMethodId ? "-" : "Open Bill");
 
 const unwrapData = (response) => response?.data?.data ?? response?.data ?? response ?? {};
+const unwrapList = (response, visited = new Set()) => {
+    if (Array.isArray(response)) return response;
+    if (!response || typeof response !== "object" || visited.has(response)) return [];
+    visited.add(response);
+    for (const key of ["data", "outlets", "branches", "items", "results"]) {
+        const list = unwrapList(response[key], visited);
+        if (list.length > 0 || Array.isArray(response[key])) return list;
+    }
+    return [];
+};
+const findNested = (source, keys, visited = new Set()) => {
+    if (!source || typeof source !== "object" || visited.has(source)) return "";
+    visited.add(source);
+    for (const key of keys) {
+        if (source[key] !== undefined && source[key] !== null && source[key] !== "") return source[key];
+    }
+    for (const value of Object.values(source)) {
+        const result = findNested(value, keys, visited);
+        if (result !== "") return result;
+    }
+    return "";
+};
 
 const RiwayatTransaksi = ()=>{
     const { user } = useContext(AuthContext);
@@ -55,12 +108,7 @@ const RiwayatTransaksi = ()=>{
                     setLoading(true);
                     try {
                         const data = await getTransaction();
-                        const transactionList = Array.isArray(data.data)
-                            ? data.data
-                            : Array.isArray(data.data?.data)
-                                ? data.data.data
-                                : [];
-                        setTransactions(transactionList);
+                        setTransactions(unwrapList(data));
                     } catch (err) {
                         setError(err.message);
                     } finally {
@@ -74,14 +122,38 @@ const RiwayatTransaksi = ()=>{
         useEffect(() => {
             const fetchInvoiceProfile = async () => {
                 try {
-                    const [settingResponse, branchResponse] = await Promise.all([
+                    const [settingResult, branchResult, meResult] = await Promise.allSettled([
                         getSetting(),
                         getBranches(),
+                        getMe(),
                     ]);
+                    const settingResponse = settingResult.status === "fulfilled" ? settingResult.value : {};
+                    const branchResponse = branchResult.status === "fulfilled" ? branchResult.value : {};
+                    const meResponse = meResult.status === "fulfilled" ? meResult.value : {};
                     const setting = unwrapData(settingResponse);
-                    const outlets = Array.isArray(branchResponse?.data) ? branchResponse.data : branchResponse?.data?.data ?? [];
-                    setBusiness(setting.business ?? setting.businessProfile ?? setting);
-                    setOutlet(outlets.find((item) => item.id === user?.outletId) ?? outlets[0] ?? {});
+                    const me = unwrapData(meResponse);
+                    const meUser = me.user ?? me.profile ?? me;
+                    const outlets = unwrapList(branchResponse);
+                    const meBusiness = me.business ?? me.businessProfile ?? me.company ?? meUser.business ?? meUser.businessProfile ?? meUser.company ?? {};
+                    const settingBusiness = setting.business ?? setting.businessProfile ?? setting.company ?? {};
+                    const businessSources = [
+                        settingBusiness,
+                        { businessName: setting.businessName, business_name: setting.business_name, address: setting.address, businessAddress: setting.businessAddress, phone: setting.phone },
+                        setting?.settings?.business,
+                        setting?.settings,
+                        setting?.business,
+                        meBusiness,
+                        { businessName: me.businessName, business_name: me.business_name, companyName: me.companyName },
+                        meUser.business,
+                        meUser.businessProfile,
+                        user?.business,
+                    ];
+                    setBusiness({
+                        name: findNested(businessSources, ["businessName", "business_name", "companyName", "company_name", "name"]),
+                        address: findNested(businessSources, ["address", "businessAddress", "business_address", "outletAddress", "outlet_address"]),
+                        phone: findNested(businessSources, ["phone", "phoneNumber", "phone_number", "businessPhone", "outletPhone"]),
+                    });
+                    setOutlet(outlets.find((item) => String(item.id) === String(user?.outletId ?? meUser.outletId)) ?? meUser.outlet ?? outlets[0] ?? {});
                 } catch {
                     setBusiness({});
                     setOutlet({});
@@ -115,7 +187,8 @@ const RiwayatTransaksi = ()=>{
                     type="text"
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
-                    className="w-full rounded-xl border border-slate-300 bg-gray-100 px-4 py-3.5 text-base text-slate-600 focus:border-[#0F74D7] focus:outline-none focus:ring-2 focus:ring-blue-100 placeholder:pl-5 md:w-[50%] lg:w-[48%]"
+                    wrapperClassName="w-full md:w-96 lg:w-105"
+                    className="h-12 w-full rounded-xl border border-slate-300 bg-gray-100 pl-11 pr-4 text-base text-slate-600 focus:border-[#0F74D7] focus:outline-none focus:ring-2 focus:ring-blue-100"
                     placeholder="Cari invoice, pelanggan, meja..."
                 />
             </div>
@@ -184,18 +257,18 @@ const RiwayatTransaksi = ()=>{
                 <div className="print-invoice max-h-[92vh] w-120 max-w-2xl overflow-y-auto rounded-2xl bg-white px-8 py-7 text-slate-800 shadow-xl">
                     <div className="relative border-b border-slate-200 pb-5 text-center">
                         <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">Invoice</p>
-                        <h2 className="mt-2 text-2xl font-bold leading-tight text-slate-900">{business.name ?? business.businessName ?? user?.business?.name ?? "Nama Bisnis"}</h2>
-                        <p className="mt-1 text-sm text-slate-500">{business.address ?? business.businessAddress ?? "Alamat bisnis"}</p>
-                        <p className="text-sm text-slate-500">{business.phone ?? business.phoneNumber ?? "-"}</p>
+                        <h2 className="mt-2 text-2xl font-bold leading-tight text-slate-900">{findNested(selectedTransaction.business, ["businessName", "business_name", "companyName", "company_name", "name"]) || business.name || "Nama Bisnis"}</h2>
+                        <p className="mt-1 text-sm text-slate-500">{findNested(selectedTransaction.business, ["address", "businessAddress", "business_address", "outletAddress", "outlet_address"]) || business.address || "Alamat bisnis"}</p>
+                        <p className="text-sm text-slate-500">{findNested(selectedTransaction.business, ["phone", "phoneNumber", "phone_number", "businessPhone"]) || business.phone || "-"}</p>
                         <button type="button" onClick={() => setSelectedTransaction(null)} className="print-hidden absolute right-0 top-0 rounded-lg p-2 text-slate-600 hover:bg-slate-100">
                             <FiX className="h-5 w-5" />
                         </button>
                     </div>
 
                     <div className="border-b border-slate-200 py-4 text-center text-sm">
-                        <p className="font-semibold text-slate-800">{outlet.name ?? "Outlet"}</p>
-                        <p className="mt-1 text-slate-500">{outlet.address ?? "Alamat outlet belum tersedia"}</p>
-                        <p className="text-slate-500">{outlet.phone ?? outlet.phoneNumber ?? "-"}</p>
+                        <p className="font-semibold text-slate-800">{selectedTransaction.outlet?.name ?? selectedTransaction.outletName ?? outlet.name ?? "Outlet"}</p>
+                        <p className="mt-1 text-slate-500">{selectedTransaction.outlet?.address ?? outlet.address ?? "Alamat outlet belum tersedia"}</p>
+                        <p className="text-slate-500">{selectedTransaction.outlet?.phone ?? outlet.phone ?? outlet.phoneNumber ?? "-"}</p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 border-b border-slate-200 py-4 text-sm">
@@ -214,9 +287,9 @@ const RiwayatTransaksi = ()=>{
                         {getTransactionItems(selectedTransaction).map((item, index) => (
                             <div key={item.id ?? index} className="grid grid-cols-[minmax(0,1fr)_3.5rem_6.5rem_6.5rem] items-center gap-2 border-b border-slate-100 px-3 py-3 text-sm">
                                 <span className="min-w-0 truncate" title={getItemName(item)}>{getItemName(item)}</span>
-                                <span>{item.quantity ?? 0}</span>
+                                <span>{getItemQuantity(item)}</span>
                                 <span className="whitespace-nowrap">{formatRupiah(getItemPrice(item))}</span>
-                                <span className="whitespace-nowrap text-right">{formatRupiah(Number(getItemPrice(item)) * Number(item.quantity ?? 0))}</span>
+                                <span className="whitespace-nowrap text-right">{formatRupiah(getItemTotal(item))}</span>
                             </div>
                         ))}
                     </div>

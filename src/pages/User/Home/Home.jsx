@@ -1,6 +1,6 @@
 import UseDateTime from '../../../components/hooks/UseDateTime';
 import Navbar from '../../../components/fragments/User/Navbar';
-import { FiClock, FiDollarSign, FiPercent } from 'react-icons/fi';
+import { FiClock, FiDollarSign } from 'react-icons/fi';
 import StatistikCard from '../../../components/fragments/User/StatistikCard';
 import { useNavigate } from 'react-router-dom';
 import { useContext, useEffect, useState } from 'react';
@@ -13,9 +13,23 @@ import { FiEye, FiX } from 'react-icons/fi';
 const OPEN_BILLS_STORAGE_KEY = "mitbiz-open-bills";
 const PAID_OPEN_BILLS_STORAGE_KEY = "mitbiz-paid-open-bills";
 const OPEN_BILLS_MIGRATION_KEY = "mitbiz-open-bills-migration-v2";
+const INITIAL_CASH_STORAGE_KEY = "mitbiz-initial-cash";
 
 const formatRupiah = (value) => `Rp ${Number(value ?? 0).toLocaleString('id-ID')}`;
 const getBillTotal = (bill) => bill.total ?? bill.totalAmount ?? bill.amount ?? 0;
+const unwrapSummary = (response) => response?.data?.data ?? response?.data ?? response ?? {};
+const getInitialCashKey = (shiftId) => `${INITIAL_CASH_STORAGE_KEY}-${shiftId}`;
+const getTransactionList = (response) => {
+    const data = response?.data?.data ?? response?.data ?? [];
+    return Array.isArray(data) ? data : [];
+};
+const getTodaySales = (transactions) => {
+    const today = new Date().toISOString().slice(0, 10);
+    return transactions
+        .filter((transaction) => String(transaction.paymentStatus ?? transaction.status ?? '').toUpperCase() === 'PAID')
+        .filter((transaction) => String(transaction.createdAt ?? transaction.created_at ?? transaction.date ?? '').slice(0, 10) === today)
+        .reduce((total, transaction) => total + Number(transaction.total ?? transaction.totalAmount ?? transaction.grandTotal ?? transaction.amount ?? 0), 0);
+};
 
 const isOpenBill = (transaction) => {
     const status = String(transaction.paymentStatus ?? transaction.status ?? '').toUpperCase();
@@ -29,7 +43,9 @@ const Home = () => {
     const navigate = useNavigate();
 
     const [shift, setShift] = useState(null);   
-    const [stats, setStats] = useState({ discount: 0, tax: 0 });
+    const [stats, setStats] = useState({ sales: 0, tax: 0, initialCash: 0 });
+    const [initialCash, setInitialCash] = useState('');
+    const [showInitialCashInput, setShowInitialCashInput] = useState(false);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
     const [openBills, setOpenBills] = useState([]);
@@ -54,28 +70,38 @@ const Home = () => {
     });
 
     const fetchInitialData = async () => {
-        setLoading(true);
-        try {
-            const [shiftRes, statsRes] = await Promise.all([
-                getShiftActive(),
-                getShiftToday(),
-            ]);
-            console.log("SHIFT ACTIVE RESPONSE:", JSON.stringify(shiftRes, null, 2));
-            setShift(shiftRes.data ?? null);
-            setStats({
-                discount: statsRes.data?.discount ?? 0,
-                tax: statsRes.data?.data?.tax ?? 0,
-            });
-        } catch (err) {
-            console.error('Gagal mengambil data dashboard:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
+    setLoading(true);
+    try {
+        const [shiftRes, transactionsRes] = await Promise.all([
+            getShiftActive(),
+            getTransaction({ outletId: user?.outletId }),
+        ]);
+        const activeShift = shiftRes.data ?? null;
+        const transactionList = getTransactionList(transactionsRes);
+        const shiftStats = getShiftStats(transactionList, activeShift);
+        const storedInitialCash = activeShift
+            ? Number(localStorage.getItem(getInitialCashKey(activeShift.id)) ?? 0)
+            : 0;
+        setShift(activeShift);
+        setStats({
+            sales: shiftStats.sales,
+            tax: shiftStats.tax,
+            initialCash: storedInitialCash || (activeShift?.initialCash ?? activeShift?.openingCash ?? activeShift?.cashAwal ?? 0),
+        });
+    } catch (err) {
+        console.error('Gagal mengambil data dashboard:', err);
+    } finally {
+        setLoading(false);
+    }
+};
 
     useEffect(() => {
+        if (!user?.outletId) {
+            setLoading(false);
+            return;
+        }
         fetchInitialData();
-    }, []);
+    }, [user?.outletId]);
 
     useEffect(() => {
         const fetchOpenBills = async () => {
@@ -150,7 +176,8 @@ const Home = () => {
         setActionLoading(true);
         try {
             const res = await getShiftOpen();
-            setShift(res.data ?? null);
+            const activeShift = res.data ?? null;
+            setShift(activeShift);
             notification.success("Shift berhasil dimulai.");
         } catch (err) {
             const message = err.message || 'Gagal memulai shift';
@@ -161,25 +188,52 @@ const Home = () => {
     };
 
     const handleAkhiriShift = async () => {
-        if (!shift?.id) return;
-        notification.confirm('Transaksi baru tidak dapat dilakukan setelah shift diakhiri.', async () => {
-            setActionLoading(true);
-            try {
-                await getShiftClose(shift.id);
-                setShift(null);
-                notification.success("Shift berhasil diakhiri.");
-            } catch (err) {
-                const message = err.message || 'Gagal mengakhiri shift';
-                notification.error(message);
-                console.log(err.message);
-            } finally {
-                setActionLoading(false);
-            }
-        }, { actionLabel: "Akhiri shift" });
-    };
+    if (!shift?.id) return;
+    notification.confirm('Transaksi baru tidak dapat dilakukan setelah shift diakhiri.', async () => {
+        setActionLoading(true);
+        try {
+            await getShiftClose(shift.id);
+            localStorage.removeItem(getInitialCashKey(shift.id));
+            setShift(null);
+            setStats({ sales: 0, tax: 0, initialCash: 0 });
+            setOpenBills([]);
+            notification.success("Shift berhasil diakhiri.");
+        } catch (err) {
+            const message = err.message || 'Gagal mengakhiri shift';
+            notification.error(message);
+        } finally {
+            setActionLoading(false);
+        }
+    }, { actionLabel: "Akhiri shift" });
+};
+    const handleSaveInitialCash = () => {
+    const parsedInitialCash = Number(initialCash);
+    if (!initialCash || !Number.isFinite(parsedInitialCash) || parsedInitialCash < 0) {
+        notification.error('Masukkan modal cash awal yang valid.');
+        return;
+    }
+    if (!shift?.id) return;
+    localStorage.setItem(getInitialCashKey(shift.id), String(parsedInitialCash));
+    setStats((currentStats) => ({ ...currentStats, initialCash: parsedInitialCash }));
+    setInitialCash('');
+    setShowInitialCashInput(false);
+    notification.success('Modal cash awal berhasil disimpan.');
+};
     const handleBuatTransaksi = () => {
     if (!shift) return;
     navigate('/transaksi-kasir');
+};
+
+const getShiftStats = (transactions, shift) => {
+    if (!shift?.id) return { sales: 0, tax: 0 };
+    return transactions
+        .filter((t) => t.shiftId === shift.id)
+        .filter((t) => String(t.status ?? t.paymentStatus ?? '').toUpperCase() === 'COMPLETED')
+        .reduce((acc, t) => {
+            acc.sales += Number(t.totalAmount ?? t.total ?? 0);
+            acc.tax += Number(t.taxAmount ?? t.tax ?? 0);
+            return acc;
+        }, { sales: 0, tax: 0 });
 };
 
 
@@ -254,10 +308,41 @@ const Home = () => {
                     </h2>
 
                     <div className="mt-5 grid gap-5 md:grid-cols-2">
-                        <StatistikCard icon={<FiPercent className="text-[1.5rem]" />} value={`Rp ${stats.discount.toLocaleString('id-ID')}`}>
-                            Diskon yang diberikan
+                        <StatistikCard
+                            icon={<FiDollarSign className="text-[1.5rem]" />}
+                            value={formatRupiah(stats.sales)}
+                            secondaryValue={formatRupiah(stats.initialCash)}
+                            action={shift && (
+                                <button
+                                    type="button"
+                                    onClick={() => setShowInitialCashInput((visible) => !visible)}
+                                    className="rounded-lg border border-[#dfe3e8] px-3 py-2 text-xs font-semibold text-[#374151] hover:bg-[#f3f4f6]"
+                                >
+                                    {showInitialCashInput ? 'Tutup' : 'Atur Modal Awal'}
+                                </button>
+                            )}
+                            content={showInitialCashInput && shift && (
+                                <div className="mt-4 flex items-end gap-2">
+                                    <label className="flex-1 text-sm font-normal text-[#6b7280]">
+                                        Modal cash awal
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={initialCash}
+                                            onChange={(event) => setInitialCash(event.target.value)}
+                                            placeholder="Rp 0"
+                                            className="mt-1 block w-full rounded-xl border border-[#dfe3e8] bg-white px-3 py-2.5 text-[#111827] outline-none focus:border-[#0f74d7]"
+                                        />
+                                    </label>
+                                    <button type="button" onClick={handleSaveInitialCash} className="rounded-xl bg-[#0f74d7] px-3 py-2.5 text-sm font-semibold text-white hover:bg-[#0d68c5]">
+                                        Simpan
+                                    </button>
+                                </div>
+                            )}
+                        >
+                            Total Penjualan Hari Ini
                         </StatistikCard>
-                        <StatistikCard icon={<FiDollarSign className="text-[1.5rem]" />} value={`Rp ${stats.tax.toLocaleString('id-ID')}`}>
+                        <StatistikCard icon={<FiDollarSign className="text-[1.5rem]" />} value={formatRupiah(stats.tax)}>
                             Total Pajak
                         </StatistikCard>
                     </div>

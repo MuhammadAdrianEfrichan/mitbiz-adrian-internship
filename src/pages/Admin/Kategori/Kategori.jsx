@@ -8,8 +8,6 @@ import { createCategory, updateCategory } from "../../../services/category.servi
 
 const initialForm = {
   name: "",
-  total: "",
-  status: "",
 };
 
 const Kategori = () => {
@@ -34,8 +32,6 @@ const Kategori = () => {
     setEditingCategory(category);
     setFormData({
       name: category.name ?? "",
-      total: category.total ?? "",
-      status: category.status ?? "ACTIVE",
     });
     setShowCategory(true);
   };
@@ -63,16 +59,11 @@ const Kategori = () => {
       try {
         const payload = {
           name: formData.name,
-          total: formData.total,
-          
         };
         console.log("PAYLOAD YANG DIKIRIM:", payload); 
   
         if (editingCategory) {
-          await updateCategory(editingCategory.id, {
-            ...payload,
-            status: formData.status,
-          });
+          await updateCategory(editingCategory.id, payload);
         } else {
           await createCategory(payload);
         }
@@ -125,7 +116,7 @@ const Kategori = () => {
                     </div>
       
                     <form className="space-y-5" onSubmit={handleSubmit}>
-                      <div className="grid gap-5 md:grid-cols-2">
+                      <div className="grid gap-5">
                         <label className="block text-sm font-medium text-slate-700">
                           <span className="mb-2 block">Nama kategori</span>
                           <input
@@ -139,34 +130,6 @@ const Kategori = () => {
                           />
                         </label>
       
-                        <label className="block text-sm font-medium text-slate-700">
-                          <span className="mb-2 block">Status</span>
-                          <select
-                            name="status"
-                            value={formData.status}
-                            onChange={handleChange}
-                            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-[#1c86ef] focus:bg-white"
-                          >
-                            <option value="ACTIVE">Aktif</option>
-                            <option value="INACTIVE">Nonaktif</option>
-                          </select>
-                        </label>
-      
-                        <label className="block text-sm font-medium text-slate-700 md:col-span-2">
-                          <span className="mb-2 block">username</span>
-                          <input
-                            type="text"
-                            name="total"
-                            value={formData.total}
-                            onChange={handleChange}
-                            required
-                            rows="3"
-                            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-[#1c86ef] focus:bg-white"
-                            placeholder="Masukkan Username kategori"
-                          />
-                        </label>
-      
-              
                       </div>
       
                       <div className="flex justify-end gap-3 border-t border-slate-200 pt-5">

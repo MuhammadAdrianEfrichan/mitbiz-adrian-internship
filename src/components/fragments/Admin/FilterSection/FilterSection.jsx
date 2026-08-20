@@ -1,64 +1,50 @@
-import { FiChevronDown } from "react-icons/fi";
+const FilterSection = ({ filters, onChange, periodOptions = [], branches = [] }) => {
+    const handleFieldChange = (field) => (event) => {
+        onChange((current) => ({ ...current, [field]: event.target.value }))
+    }
 
-const FilterSection = () => {
-  return (
-    <div className="w-full rounded-3xl border border-gray-200 bg-white p-6 mb-10">
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-        {/* Periode */}
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-gray-800">
-            Periode
-          </label>
+    return (
+        <section className="mb-6 grid grid-cols-3 gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <label className="text-sm font-medium text-slate-700">
+                Periode
+                <select
+                    value={filters.period}
+                    onChange={handleFieldChange("period")}
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-blue-500 focus:outline-none"
+                >
+                    {periodOptions.map((opt) => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                </select>
+            </label>
 
-          <div className="relative">
-            <select className="h-11 w-full appearance-none rounded-xl bg-gray-100 px-4 pr-10 text-sm text-gray-700 outline-none transition focus:ring-2 focus:ring-blue-500">
-              <option>30 Hari Terakhir</option>
-              <option>7 Hari Terakhir</option>
-              <option>90 Hari Terakhir</option>
-              <option>1 Tahun</option>
-            </select>
+            <label className="text-sm font-medium text-slate-700">
+                Cabang
+                <select
+                    value={filters.outletId}
+                    onChange={handleFieldChange("outletId")}
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-blue-500 focus:outline-none"
+                >
+                    <option value="">Semua Cabang</option>
+                    {branches.map((branch) => (
+                        <option key={branch.id} value={branch.id}>{branch.name}</option>
+                    ))}
+                </select>
+            </label>
 
-            <FiChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xl text-gray-500" />
-          </div>
-        </div>
+            <label className="text-sm font-medium text-slate-700">
+                Kategori
+                <select
+                    value={filters.category}
+                    onChange={handleFieldChange("category")}
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-blue-500 focus:outline-none"
+                >
+                    <option value="">Produk Terlaris</option>
+                    <option value="slow-moving">Produk Kurang Laris</option>
+                </select>
+            </label>
+        </section>
+    )
+}
 
-        {/* Cabang */}
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-gray-800">
-            Cabang
-          </label>
-
-          <div className="relative">
-            <select className="h-11 w-full appearance-none rounded-xl bg-gray-100 px-4 pr-10 text-sm text-gray-700 outline-none transition focus:ring-2 focus:ring-blue-500">
-              <option>Semua Cabang</option>
-              <option>Cabang Padang</option>
-              <option>Cabang Bukittinggi</option>
-              <option>Cabang Solok</option>
-            </select>
-
-            <FiChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xl text-gray-500" />
-          </div>
-        </div>
-
-        {/* Kategori */}
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-gray-800">
-            Kategori
-          </label>
-
-          <div className="relative">
-            <select className="h-11 w-full appearance-none rounded-xl bg-gray-100 px-4 pr-10 text-sm text-gray-700 outline-none transition focus:ring-2 focus:ring-blue-500">
-              <option>Produk Terlaris</option>
-              <option>Pendapatan</option>
-              <option>Stok</option>
-            </select>
-
-            <FiChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xl text-gray-500" />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default FilterSection;
+export default FilterSection

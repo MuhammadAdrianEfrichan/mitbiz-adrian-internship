@@ -13,6 +13,9 @@ const ProfileCard = ()=>{
         notification.confirm("Anda akan keluar dari akun ini.", async () => {
             try {
                 await logout();
+                Object.keys(localStorage)
+                    .filter((key) => key.startsWith("mitbiz-initial-cash-"))
+                    .forEach((key) => localStorage.removeItem(key));
                 setUser(null);
                 notification.success("Anda berhasil logout.");
                 navigate("/");

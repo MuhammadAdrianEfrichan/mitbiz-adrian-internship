@@ -8,7 +8,7 @@ import { useContext, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { categoryProduct, getProduct } from "../../../services/product.service";
 import { FiRefreshCw, FiTrash2 } from "react-icons/fi";
-import { createTransactions, getMetodePembayaran, getTransaction } from "../../../services/transaction.service";
+import { createTransactions, getMetodePembayaran,getTransaction,getPajak } from "../../../services/transaction.service";
 import { useNotification } from "../../../components/ui/NotificationCenter";
 import PaymentModal from "../../../components/fragments/User/PaymentModal"
 import { AuthContext } from "../../../context/AuthContext";
@@ -24,30 +24,51 @@ const unwrapSetting = (response) => response?.data?.data ?? response?.data ?? re
 const findTaxSource = (value, visited = new Set()) => {
     if (!value || typeof value !== "object" || visited.has(value)) return {};
     visited.add(value);
-    const taxKeys = ["taxPercentage", "taxPercent", "taxRate", "rate", "pajakPercentage", "pajak"];
+    const taxKeys = ["percentage", "taxPercentage", "taxPercent", "taxRate", "rate", "pajakPercentage", "pajak"];
     if (taxKeys.some((key) => value[key] !== undefined && value[key] !== null && value[key] !== "")) return value;
-    for (const key of ["tax", "taxSettings", "settings", "config", "summary", "transactionSummary", "business"]) {
+    for (const key of ["tax", "taxSettings", "settings", "config", "summary", "transactionSummary", "business", "data"]) {
         const result = findTaxSource(value[key], visited);
         if (Object.keys(result).length > 0) return result;
     }
     return {};
 };
+
 const getConfiguredTaxRate = (response) => {
     const tax = findTaxSource(unwrapSetting(response));
-    const taxValue = tax.taxPercentage ?? tax.taxPercent ?? tax.rate ?? tax.taxRate ?? tax.pajakPercentage ?? tax.pajak;
+    const taxValue = tax.percentage ?? tax.taxPercentage ?? tax.taxPercent ?? tax.rate ?? tax.taxRate ?? tax.pajakPercentage ?? tax.pajak;
     if (taxValue === undefined || taxValue === null || taxValue === "") return null;
-    const enabled = tax.taxEnabled ?? tax.isTaxActive ?? tax.enableTax ?? tax.pajakEnabled ?? true;
+    const enabled = tax.isEnabled ?? tax.isTaxEnabled ?? tax.taxEnabled ?? tax.isTaxActive ?? tax.enableTax ?? tax.pajakEnabled ?? true;
     const configuredTax = Number(taxValue);
     return enabled && Number.isFinite(configuredTax)
         ? (configuredTax > 1 ? configuredTax / 100 : configuredTax)
         : 0;
 };
 
+const findDiscountSource = (value, visited = new Set()) => {
+    if (!value || typeof value !== "object" || visited.has(value)) return {};
+    visited.add(value);
+    const discountKeys = ["minPurchase", "percentage", "isEnabled"];
+    if (discountKeys.some((key) => value[key] !== undefined && value[key] !== null && value[key] !== "")) return value;
+    for (const key of ["discount", "discountSettings", "settings", "config", "data"]) {
+        const result = findDiscountSource(value[key], visited);
+        if (Object.keys(result).length > 0) return result;
+    }
+    return {};
+};
+
+const getConfiguredDiscount = (response) => {
+    const discount = findDiscountSource(unwrapSetting(response));
+    return {
+        enabled: Boolean(discount.isEnabled ?? discount.discountEnabled ?? discount.isDiscountEnabled ?? false),
+        percentage: Number(discount.percentage ?? discount.discountPercentage ?? 0) || 0,
+        minPurchase: Number(discount.minPurchase ?? discount.minPurchaseAmount ?? 0) || 0,
+    };
+};
+
 const Transaksi = () => {
     const notification = useNotification();
     const {user} = useContext(AuthContext);
     const [product, setProduct] = useState([]);
-    const [totalProduct, setTotalProduct] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [ searchParams, setSearchParams] = useSearchParams();
@@ -61,6 +82,7 @@ const Transaksi = () => {
     const [submitting, setSubmitting] = useState(false);
     const [customerName, setCustomerName] = useState("");
     const [tableNumber, setTableNumber] = useState("");
+    const [discountConfig, setDiscountConfig] = useState({ enabled: false, percentage: 0, minPurchase: 0 });
 
 
 
@@ -115,18 +137,17 @@ const Transaksi = () => {
 }, [allProducts]);
 
 
-    useEffect(() => {
-        if(!user?.outletId){
-            return
-        }
+useEffect(() => {
+    if (!user?.outletId) return;
     const fetchInitialSettings = async () => {
         try {
-            const [methodsRes, transactionResult] = await Promise.all([
+            const [methodsRes, pajakRes] = await Promise.all([
                 getMetodePembayaran(user.outletId),
-                getTransaction({ outletId: user.outletId }),
+                getPajak(),
             ]);
             setPaymentMethods(methodsRes.data ?? []);
-            setTaxRate(getConfiguredTaxRate(transactionResult) ?? 0);
+            setTaxRate(getConfiguredTaxRate(pajakRes) ?? 0);
+            setDiscountConfig(getConfiguredDiscount(pajakRes));
 
             if (methodsRes.data?.length > 0) {
                 setSelectedPaymentMethodId(methodsRes.data[0].id);
@@ -201,20 +222,31 @@ const handleResetCart = () => {
         notification.success("Keranjang berhasil dikosongkan.");
     }, { actionLabel: "Kosongkan" });
 };
-
 const subTotal = useMemo(
     () => cart.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0),
     [cart]
 );
-const totalDiscount = useMemo(() => {
+const itemDiscountTotal = useMemo(() => {
     return cart.reduce((sum, item) => {
         const itemTotal = Number(item.price) * item.quantity;
         return sum + itemTotal * (getDiscountRate(item.discount) / 100);
     }, 0);
 }, [cart]);
 
+const globalDiscountAmount = useMemo(() => {
+    if (!discountConfig.enabled) return 0;
+    if (subTotal < discountConfig.minPurchase) return 0;
+    const baseForDiscount = subTotal - itemDiscountTotal;
+    return Math.round(baseForDiscount * (discountConfig.percentage / 100));
+}, [subTotal, itemDiscountTotal, discountConfig]);
+
+const totalDiscount = useMemo(
+    () => itemDiscountTotal + globalDiscountAmount,
+    [itemDiscountTotal, globalDiscountAmount]
+);  
+
 const taxableAmount = useMemo(() => subTotal - totalDiscount, [subTotal, totalDiscount]);
-const taxAmount = useMemo(() => taxableAmount * taxRate, [taxableAmount, taxRate]);
+const taxAmount = useMemo(() => Math.round(taxableAmount * taxRate), [taxableAmount, taxRate]);
 const total = useMemo(() => taxableAmount + taxAmount, [taxableAmount, taxAmount]);
 
 
@@ -447,6 +479,12 @@ const handleOpenBill = () => {
             <span>Sub Total</span>
             <span>Rp{subTotal.toLocaleString("id-ID")}</span>
         </div>
+        {globalDiscountAmount > 0 && (
+    <div className="flex justify-between text-red-600">
+        <span>Diskon {discountConfig.percentage}% (min. Rp{discountConfig.minPurchase.toLocaleString("id-ID")})</span>
+        <span>-Rp{globalDiscountAmount.toLocaleString("id-ID")}</span>
+    </div>
+)}
         <div className="flex justify-between">
             <span>Pajak {(taxRate * 100).toFixed(0)}%</span>
             <span>Rp{taxAmount.toLocaleString("id-ID")}</span>

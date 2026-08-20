@@ -87,12 +87,17 @@ const PengaturanAdmin = () => {
     }
     setSaving(true);
     try {
-      await updateBusinessSetting({
-        businessName: form.businessName.trim(), phone: form.phone.trim(), email: form.email.trim(), address: form.address.trim(),
-        discountEnabled: form.discountEnabled, discountPercentage: form.discountEnabled ? Number(form.discountPercentage || 0) : 0,
-        minPurchaseAmount: form.discountEnabled ? Number(form.minPurchaseAmount || 0) : 0, taxEnabled: form.taxEnabled,
-        taxPercentage: form.taxEnabled ? Number(form.taxPercentage || 0) : 0,
-      });
+    await updateBusinessSetting({
+    businessName: form.businessName.trim(),
+    phone: form.phone.trim(),
+    email: form.email.trim(),
+    address: form.address.trim(),
+    isDiscountEnabled: form.discountEnabled,
+    globalDiscountPercentage: form.discountEnabled ? Number(form.discountPercentage || 0) : 0,
+    globalDiscountMinPurchase: form.discountEnabled ? Number(form.minPurchaseAmount || 0) : 0,
+    isTaxEnabled: form.taxEnabled,
+    taxPercentage: form.taxEnabled ? Number(form.taxPercentage || 0) : 0,
+});
       notification.success("Pengaturan berhasil disimpan.");
     } catch (error) { notification.error(error.message || "Pengaturan gagal disimpan."); }
     finally { setSaving(false); }

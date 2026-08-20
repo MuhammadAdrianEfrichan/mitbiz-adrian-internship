@@ -76,8 +76,6 @@ const KategoriAdmin = ({refreshKey, onEdit}) => {
             <thead>
               <tr className="bg-slate-100 text-sm font-semibold text-slate-700">
                 <th className="px-5 py-3">Nama</th>
-                <th className="px-5 py-3">Username</th>
-                <th className="px-5 py-3">Status</th>
                 <th className="px-5 py-3 text-center">Aksi</th>
               </tr>
             </thead>
@@ -85,12 +83,6 @@ const KategoriAdmin = ({refreshKey, onEdit}) => {
               {categories.map((category) => (
                 <tr key={category.id} className="border-t border-slate-200 text-sm text-slate-700">
                   <td className="px-5 py-4">{category.name}</td>
-                  <td className="px-5 py-4">{category.total}</td>
-                  <td className="px-5 py-4">
-                    <span className="inline-flex rounded-md bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-                      {category.status}
-                    </span>
-                  </td>
                   <td className="px-5 py-4">
                     <div className="flex items-center justify-center gap-3">
                       <button

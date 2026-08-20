@@ -1,67 +1,49 @@
-import {
-  FiBox,
-  FiBriefcase,
-  FiCreditCard,
-  FiDollarSign,
-  FiPackage,
-  FiUsers,
-} from "react-icons/fi";
+import { FiDollarSign, FiBriefcase, FiUsers, FiBox } from "react-icons/fi"
 
-const summaryCards = [
-  {
-    label: "Total Penjualan (30 Hari)",
-    value: "Rp 26.677.001",
-    subtext: "337 transaksi",
-    icon: FiDollarSign,
-    accent: "bg-[#eaf2ff] text-[#0a5cb3]",
-  },
-  {
-    label: "Cabang Aktif",
-    value: "3",
-    subtext: "dari 10 total",
-    icon: FiBriefcase,
-    accent: "bg-[#eefaf3] text-[#1ea16c]",
-  },
-  {
-    label: "Kasir Aktif",
-    value: "4",
-    subtext: "Kasir terdaftar",
-    icon: FiUsers,
-    accent: "bg-[#fff3e8] text-[#f29b29]",
-  },
-  {
-    label: "Produk Aktif",
-    value: "8",
-    subtext: "dari 8 total",
-    icon: FiPackage,
-    accent: "bg-[#f3ecff] text-[#7b5ce9]",
-  },
-];
+const formatRupiah = (value) => `Rp ${Number(value ?? 0).toLocaleString("id-ID")}`
 
-const SummaryCard = ()=>{
-    return(
+const SummaryCard = ({ summary }) => {
+    const cards = [
+        {
+            label: `Total Penjualan (${summary?.periodLabel ?? "30 Hari"})`,
+            value: formatRupiah(summary?.totalSales ?? summary?.totalPenjualan ?? 0),
+            sub: `${summary?.totalTransactions ?? summary?.totalTransaksi ?? 0} transaksi`,
+            icon: FiDollarSign,
+        },
+        {
+            label: "Cabang Aktif",
+            value: summary?.activeBranches ?? summary?.cabangAktif ?? 0,
+            sub: `dari ${summary?.totalBranches ?? summary?.totalCabang ?? 0} total`,
+            icon: FiBriefcase,
+        },
+        {
+            label: "Kasir Aktif",
+            value: summary?.activeCashiers ?? summary?.kasirAktif ?? 0,
+            sub: "Kasir terdaftar",
+            icon: FiUsers,
+        },
+        {
+            label: "Produk Aktif",
+            value: summary?.activeProducts ?? summary?.produkAktif ?? 0,
+            sub: `dari ${summary?.totalProducts ?? summary?.totalProduk ?? 0} total`,
+            icon: FiBox,
+        },
+    ]
+
+    return (
         <section className="grid grid-cols-4 gap-4">
-          {summaryCards.map(({ label, value, subtext, icon: Icon, accent }) => (
-            <div
-              key={label}
-              className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
-            >
-              <div className="mb-4 flex items-center justify-between">
-                <p className="text-sm font-medium text-slate-600">{label}</p>
-                <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${accent}`}>
-                  <Icon size={16} />
-                </span>
-              </div>
-
-              <div className="flex items-end justify-between gap-3">
-                <div>
-                  <p className="text-[2rem] font-bold leading-none text-slate-800">{value}</p>
+            {cards.map(({ label, value, sub, icon: Icon }) => (
+                <div key={label} className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+                    <div className="mb-2 flex items-center justify-between">
+                        <span className="text-[0.9rem] font-medium text-slate-600">{label}</span>
+                        <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500">
+                            <Icon size={15} />
+                        </span>
+                    </div>
+                    <div className="text-[1.8rem] font-bold leading-none text-slate-800">{value}</div>
+                    <div className="mt-1 text-xs text-slate-400">{sub}</div>
                 </div>
-              </div>
-
-              <p className="mt-2 text-xs text-slate-500">{subtext}</p>
-            </div>
-          ))}
+            ))}
         </section>
     )
 }

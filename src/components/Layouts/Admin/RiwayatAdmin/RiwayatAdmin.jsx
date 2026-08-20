@@ -83,9 +83,10 @@ const RiwayatAdmin = () => {
   const displayedSummary = search || branchFilter || statusFilter || !apiSummary ? summary : {
     sales: apiSummary.sales || summary.sales,
     count: apiSummary.count,
-    discount: apiSummary.discount,
-    tax: apiSummary.tax,
-  };
+    discount: apiSummary.discount || summary.discount,
+    tax: apiSummary.tax || summary.tax,
+};
+  
 
   const exportCsv = () => {
     const headers = ["Invoice", "Tanggal", "Cabang", "Kasir", "Metode", "Subtotal", "Diskon", "Pajak", "Total", "Status"];

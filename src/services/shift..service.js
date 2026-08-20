@@ -24,10 +24,14 @@ export const getShiftToday = async (outletId) => {
     return data;
 };
 
-export const getShiftOpen = async () => {
+export const getShiftOpen = async (payload = {}) => {
     const res = await fetch(`${environment.API_URL}/shifts/open`, {
         method: "POST",
         credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Gagal mengambil data user");

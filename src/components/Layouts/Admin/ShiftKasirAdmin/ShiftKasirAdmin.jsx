@@ -6,8 +6,9 @@ import {
   getShiftToday,
   forceOpenShift,
   forceCloseShift,
-} from "../../../../services/shift..service"; 
-import { getBranches } from "../../../../services/branch.service"; // sesuaikan path & nama fungsi
+} from "../../../../services/shift..service";
+import { getBranches } from "../../../../services/branch.service";
+import { getTransaction } from "../../../../services/transaction.service";
 import { useNotification } from "../../../ui/NotificationCenter";
 
 const formatRupiah = (value) => `Rp ${Number(value ?? 0).toLocaleString("id-ID")}`;
@@ -17,6 +18,15 @@ const formatJam = (value) => {
   const date = new Date(value);
   if (isNaN(date.getTime())) return "-";
   return date.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+};
+
+const unwrapList = (res) => {
+  if (Array.isArray(res)) return res;
+  if (Array.isArray(res?.data)) return res.data;
+  if (Array.isArray(res?.data?.data)) return res.data.data;
+  if (Array.isArray(res?.data?.transactions)) return res.data.transactions;
+  if (Array.isArray(res?.data?.data?.transactions)) return res.data.data.transactions;
+  return [];
 };
 
 const ShiftKasirAdmin = () => {
@@ -37,7 +47,6 @@ const ShiftKasirAdmin = () => {
         const res = await getBranches();
         const list = unwrapList(res);
         setOutlets(list);
-        if (list.length > 0) setOutletId(list[0].id)
       } catch (err) {
         console.error("Gagal mengambil daftar outlet:", err);
         setError(err.message);
@@ -46,41 +55,68 @@ const ShiftKasirAdmin = () => {
     fetchOutlets();
   }, []);
 
-  const unwrapList = (res) => {
-  if (Array.isArray(res)) return res;
-  if (Array.isArray(res?.data)) return res.data;
-  if (Array.isArray(res?.data?.data)) return res.data.data;
-  return [];
-};
+  const fetchAll = async (id) => {
+    const selectedOutlets = id ? outlets.filter((outlet) => String(outlet.id) === String(id)) : outlets;
+    if (selectedOutlets.length === 0) return;
+    setLoading(true);
+    try {
+      const outletResults = await Promise.all(selectedOutlets.map(async (outlet) => {
+        const [cashiersRes, shiftsRes, summaryRes, transactionsRes] = await Promise.all([
+          getCashiersStatus(outlet.id),
+          getShifts(outlet.id),
+          getShiftToday(outlet.id),
+          getTransaction({ outletId: outlet.id }),
+        ]);
 
-const fetchAll = async (id) => {
-  if (!id) return;
-  setLoading(true);
-  try {
-    const [cashiersRes, shiftsRes, summaryRes] = await Promise.all([
-      getCashiersStatus(id),
-      getShifts(id),
-      getShiftToday(id),
-    ]);
+        const completedTransactions = unwrapList(transactionsRes).filter(
+          (transaction) => String(transaction.status ?? transaction.paymentStatus ?? "").toUpperCase() === "COMPLETED"
+        );
+        const statsByShift = completedTransactions.reduce((acc, transaction) => {
+          const shiftId = transaction.shiftId;
+          if (!shiftId) return acc;
+          if (!acc[shiftId]) acc[shiftId] = { sales: 0, count: 0 };
+          acc[shiftId].sales += Number(transaction.totalAmount ?? transaction.total ?? 0);
+          acc[shiftId].count += 1;
+          return acc;
+        }, {});
+        const rawShifts = unwrapList(shiftsRes);
+        const summaryData = summaryRes?.data?.data ?? summaryRes?.data ?? summaryRes ?? {};
 
-    setCashiers(unwrapList(cashiersRes));
-    setShifts(unwrapList(shiftsRes));
-    setSummary(summaryRes?.data?.data ?? summaryRes?.data ?? summaryRes ?? null);
-    setError("");
-  } catch (err) {
-    console.error("Gagal mengambil data shift:", err);
-    setError(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+        return {
+          cashiers: unwrapList(cashiersRes).map((cashier) => ({ ...cashier, outletName: cashier.outlet?.name ?? outlet.name })),
+          shifts: rawShifts.map((shift) => ({
+            ...shift,
+            outletName: shift.outlet?.name ?? outlet.name,
+            totalPenjualan: statsByShift[shift.id]?.sales ?? shift.totalPenjualan ?? 0,
+            totalTransaksi: statsByShift[shift.id]?.count ?? shift.totalTransaksi ?? 0,
+          })),
+          summary: summaryData,
+        };
+      }));
+
+      const allCashiers = outletResults.flatMap((result) => result.cashiers);
+      const allShifts = outletResults.flatMap((result) => result.shifts);
+      const allSummaries = outletResults.map((result) => result.summary);
+      setCashiers(allCashiers);
+      setShifts(allShifts);
+      setSummary({
+        totalShift: allSummaries.reduce((sum, item) => sum + Number(item.totalShift ?? 0), 0) || allShifts.length,
+        totalPenjualan: allSummaries.reduce((sum, item) => sum + Number(item.totalPenjualan ?? item.totalSales ?? 0), 0)
+          || allShifts.reduce((sum, shift) => sum + Number(shift.totalPenjualan ?? 0), 0),
+      });
+      setError("");
+    } catch (err) {
+      console.error("Gagal mengambil data shift:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Setiap kali outlet yang dipilih berubah, ambil ulang semua data
   useEffect(() => {
     fetchAll(outletId);
-  }, [outletId]);
-
-  
+  }, [outletId, outlets]);
 
   const handleToggleShift = async (cashier) => {
     const cashierId = cashier.id ?? cashier.userId ?? cashier.cashierId;
@@ -106,13 +142,14 @@ const fetchAll = async (id) => {
 
   const summaryCards = useMemo(() => {
     const shiftAktif = cashiers.filter((c) => c.activeShiftId ?? c.shiftId ?? c.shift?.id).length;
+    const totalPenjualanShift = shifts.reduce((sum, s) => sum + Number(s.totalPenjualan ?? 0), 0);
 
     return [
       { label: "Shift Aktif", value: shiftAktif, icon: FiBriefcase },
       { label: "Shift Hari Ini", value: summary?.totalShift ?? shifts.length, icon: FiClock },
       {
         label: "Penjualan Hari Ini",
-        value: formatRupiah(summary?.totalPenjualan ?? summary?.totalSales ?? 0),
+        value: formatRupiah(summary?.totalPenjualan ?? summary?.totalSales ?? totalPenjualanShift),
         icon: FiDollarSign,
       },
     ];
@@ -122,10 +159,9 @@ const fetchAll = async (id) => {
     <div className="space-y-5">
       {/* Dropdown pilih outlet */}
       <div className="flex items-center justify-between">
-        <div>
-        </div>
+        <div></div>
         <select
-          className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-blue-500 focus:outline-none"
+          className="min-w-56 rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-700 focus:border-blue-500 focus:outline-none"
           value={outletId}
           onChange={(e) => setOutletId(e.target.value)}
         >
