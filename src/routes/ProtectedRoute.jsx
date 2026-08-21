@@ -1,10 +1,9 @@
+import { useState, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
+import { getMe } from "../services/auth.service";
 import UseAuth from "../components/hooks/UseAuth";
-import { getUserPermissions, getUserRole } from "../utils/authorization";
 
-const getHomePath = (user) => getUserRole(user) === "STAFF" ? "/dasboard-kasir" : "/home-admin";
-
-const ProtectedRoute = ({ children, allowedRoles, requiredPermission, adminOnly = false, cashierOnly = false }) => {
+const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user, loading } = UseAuth();
     const currentRoute = useLocation().pathname;
 
@@ -18,20 +17,18 @@ const ProtectedRoute = ({ children, allowedRoles, requiredPermission, adminOnly 
     }
 
     if (user && currentRoute === '/') {
-        return <Navigate to={getHomePath(user)} replace />;
+        // Gunakan portalTarget dari backend (dikirim via getMe)
+        // POS = kasir, selain itu = admin panel
+        const isKasirOnly = user.portalTarget === 'POS' || 
+            (user.role === "STAFF" && !user.permissions?.some(p => p !== "MENU_POS"));
+        const home = isKasirOnly ? "/dasboard-kasir" : "/home-admin";
+        return <Navigate to={home} replace />;
     }
-    const role = getUserRole(user);
-    if (user && cashierOnly && role !== "STAFF") {
-        return <Navigate to="/home-admin" replace />;
-    }
-    if (user && adminOnly && role === "STAFF") {
-        return <Navigate to="/dasboard-kasir" replace />;
-    }
-    if (user && allowedRoles && !allowedRoles.map((item) => item.toUpperCase()).includes(role)) {
-        return <Navigate to={getHomePath(user)} replace />;
-    }
-    if (user && requiredPermission && role !== "ADMIN" && !getUserPermissions(user).includes(requiredPermission.toUpperCase())) {
-        return <Navigate to={getHomePath(user)} replace />;
+    if (user && allowedRoles && !allowedRoles.includes(user.role)) {
+        const isKasirOnly = user.portalTarget === 'POS' || 
+            (user.role === "STAFF" && !user.permissions?.some(p => p !== "MENU_POS"));
+        const home = isKasirOnly ? "/dasboard-kasir" : "/home-admin";
+        return <Navigate to={home} replace />;
     }
 
     return <>{children}</>;

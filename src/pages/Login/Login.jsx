@@ -3,6 +3,7 @@ import LeftCopy from '../../components/fragments/LeftCopy'
 import LoginCard from '../../components/fragments/LoginCard'
 import ContentLogin from '../../components/fragments/ContentLogin'
 import TagLine from '../../components/fragments/TagLine'
+import LupaPassword from '../../components/fragments/LupaPassword'
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { login } from '../../services/auth.service'
@@ -11,10 +12,10 @@ import UseAuth from '../../components/hooks/UseAuth'
 const Login = ()=>{
     const loginFields = [
     {
-        label: 'Email',
+        label: 'Email / Username',
         name: 'identifier',
         type: 'text',
-        placeholder: 'Masukkan email / username kasir',
+        placeholder: 'Masukkan email atau username',
         required: true,
     },
     {
@@ -62,16 +63,14 @@ const Login = ()=>{
         setLoading(true);
         try {
             const data = await login(form);
-            const authenticatedUser = await refetchUser();
-        const role = authenticatedUser?.role?.name ?? authenticatedUser?.role ?? data.data?.user?.role ?? data.user?.role;
-        if (role === "STAFF") {
-            navigate("/dasboard-kasir");
-        } else{
-            navigate("/home-admin")
-        }
-        // if (role === "ADMIN"){
-        //     navigate("/home-admin");
-        // }
+            await refetchUser();
+            // Gunakan portalTarget dari response backend untuk redirect yang akurat
+            const portalTarget = data.data?.portalTarget ?? data.portalTarget;
+            if (portalTarget === "POS") {
+                navigate("/dasboard-kasir");
+            } else {
+                navigate("/home-admin");
+            }
         } catch (err) {
             setServerError(err.message || "Tidak bisa terhubung ke server");
         } finally {
@@ -95,6 +94,7 @@ const Login = ()=>{
                     onFieldChange={handleChange}
                     submitLabel={loading ? "Memproses..." : "Masuk"}
                 >
+                    <LupaPassword />
 
                     <Link to='/register-admin' className='text-xl text-blue-600 flex justify-end'>Register</Link>
 

@@ -1,4 +1,5 @@
 import Login from "../pages/Login";
+import RegisterAkun from '../pages/Register/RegisterAkun'
 import RegisterOutlet from '../pages/Register/RegisterOutlet'
 import RegisterDone from '../pages/Register/RegisterDone'
 import Home from "../pages/User/Home/Home";
@@ -20,17 +21,12 @@ import Riwayat from "../pages/Admin/Riwayat/Riwayat";
 import ShiftKasir from "../pages/Admin/ShiftKasir/ShiftKasir";
 import RegisterBisnis from "../pages/Register/RegisterBisnis";
 import ProtectedRoute from "./ProtectedRoute";
-import LupaPasswordPage from "../pages/Login/LupaPassword";
 
 
 const routes =[
     {
         path: '/',
         element : <Login />
-    },
-    {
-        path: '/lupa-password',
-        element: <LupaPasswordPage />,
     },
     {
         path : '/register-admin',
@@ -61,26 +57,26 @@ const routes =[
     },
     {
         path: '/stok-kasir',
-        element :<ProtectedRoute cashierOnly>
+        element :<ProtectedRoute >
                 <Stok />
                 </ProtectedRoute> 
     },
     {
         path: '/transaksi-kasir',
-        element : <ProtectedRoute cashierOnly>
+        element : <ProtectedRoute >
         <Transaksi />
         </ProtectedRoute>
     },
     {
         path: '/riwayat-transaksi-kasir',
-        element : <ProtectedRoute cashierOnly>
+        element : <ProtectedRoute >
                 <RiwayatTransaksi />
                 </ProtectedRoute>
     },
     // Admin
     {
         path: '/home-admin',
-        element : <ProtectedRoute adminOnly requiredPermission="MENU_DASHBOARD">
+        element : <ProtectedRoute allowedRoles={["ADMIN", "STAFF"]}>
                     <HomeAdmin />
                 </ProtectedRoute>,
         children: [
@@ -92,67 +88,67 @@ const routes =[
 
     {
         path : '/laporan-admin',
-        element : <ProtectedRoute adminOnly requiredPermission="MENU_REPORT">
+        element : <ProtectedRoute>
                     <Laporan />
                     </ProtectedRoute>
     },
     {
         path : '/cabang-admin',
-        element : <ProtectedRoute adminOnly requiredPermission="MENU_CABANG">
+        element : <ProtectedRoute>
                     <Cabang />
                     </ProtectedRoute>
     },
     {
         path : '/kasir-admin',
-        element :<ProtectedRoute adminOnly requiredPermission="MENU_STAFF">
+        element :<ProtectedRoute>
                     <Kasir />
                 </ProtectedRoute> 
     },
     {
         path : '/produk-admin',
-        element : <ProtectedRoute adminOnly requiredPermission="MENU_PRODUCT">
+        element : <ProtectedRoute>
                     <Produk />
                     </ProtectedRoute>
     },
     {
         path : '/kategori-admin',
-        element :<ProtectedRoute adminOnly requiredPermission="MENU_CATEGORY"> 
+        element :<ProtectedRoute> 
                 <Kategori />
                 </ProtectedRoute>
     },
     {
         path : '/metode-pembayaran-admin',
-        element : <ProtectedRoute adminOnly requiredPermission="MENU_PAYMENT"> 
+        element : <ProtectedRoute> 
                     <Pembayaran />
                 </ProtectedRoute>
     },
     {
         path : '/stok-admin',
-        element : <ProtectedRoute adminOnly requiredPermission="MENU_STOCK"> 
+        element : <ProtectedRoute> 
                     <AdminStok />
                 </ProtectedRoute>
     },
     {
         path : '/penyesuaian-stok-admin',
-        element : <ProtectedRoute adminOnly requiredPermission="MENU_STOCK_ADJUSTMENT"> 
+        element : <ProtectedRoute> 
             <PenyesuaianStok />
             </ProtectedRoute>
     },
     {
         path : '/pengaturan-admin',
-        element :<ProtectedRoute adminOnly requiredPermission="MENU_SETTING"> 
+        element :<ProtectedRoute> 
                     <Pengaturan />
                 </ProtectedRoute> 
     },
     {
         path : '/riwayat-transaksi-admin',
-        element :<ProtectedRoute adminOnly requiredPermission="MENU_TRANSACTION_HISTORY">
+        element :<ProtectedRoute>
                     <Riwayat />
                 </ProtectedRoute>         
     },
     {
         path : '/shift-kasir-admin',
-        element :<ProtectedRoute adminOnly requiredPermission="MENU_SHIFT">
+        element :<ProtectedRoute>
                 <ShiftKasir />
                 </ProtectedRoute> 
     },
