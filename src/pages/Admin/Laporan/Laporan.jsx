@@ -6,12 +6,7 @@ const Laporan = ()=>{
     return (
         <SidebarAdmin>
             <MainAdmin 
-            title='Laporan'
-            subtitle = 'Analisis dan penjualan lengkap'
             content = {<LaporanAdmin />}
-            icon = {<CiExport className="w-7 h-7"/>}
-            buttonLabel = "Export Laporan"
-            buttonClassName = "flex gap-2 text-xl bg-blue-600 p-3 text-white rounded-xl cursor-pointer"
         />
         </SidebarAdmin>
     )

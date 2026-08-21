@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { FiBriefcase, FiEye, FiClock, FiDollarSign } from "react-icons/fi";
+import { FiBriefcase, FiEye, FiClock, FiDollarSign, FiX } from "react-icons/fi";
 import {
   getCashiersStatus,
   getShifts,
@@ -39,6 +39,7 @@ const ShiftKasirAdmin = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [actionLoadingId, setActionLoadingId] = useState(null);
+  const [selectedShift, setSelectedShift] = useState(null);
 
   // Ambil daftar outlet sekali di awal, untuk isi dropdown
   useEffect(() => {
@@ -306,6 +307,7 @@ const ShiftKasirAdmin = () => {
                         <td className="px-4 py-3">
                           <button
                             type="button"
+                            onClick={() => setSelectedShift(item)}
                             className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 transition hover:border-blue-400 hover:text-blue-500"
                             aria-label="Lihat detail"
                           >
@@ -321,6 +323,40 @@ const ShiftKasirAdmin = () => {
           </div>
         </div>
       </section>
+
+      {selectedShift && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between border-b border-slate-200 pb-4">
+              <div>
+                <p className="text-sm font-medium text-blue-600">Detail Shift</p>
+                <h2 className="mt-1 text-xl font-bold text-slate-800">
+                  {selectedShift.cashier?.name ?? selectedShift.kasir?.name ?? selectedShift.user?.name ?? selectedShift.kasir ?? "Kasir"}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedShift(null)}
+                className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                aria-label="Tutup detail shift"
+              >
+                <FiX size={20} />
+              </button>
+            </div>
+
+            <div className="mt-5 grid grid-cols-2 gap-4 text-sm">
+              <div><p className="text-slate-500">Cabang</p><p className="mt-1 font-semibold text-slate-800">{selectedShift.outletName ?? selectedShift.outlet?.name ?? "-"}</p></div>
+              <div><p className="text-slate-500">Status</p><p className="mt-1 font-semibold text-slate-800">{selectedShift.closedAt ?? selectedShift.ditutup ? "Ditutup" : "Aktif"}</p></div>
+              <div><p className="text-slate-500">Waktu Dibuka</p><p className="mt-1 font-semibold text-slate-800">{formatJam(selectedShift.openedAt ?? selectedShift.dibuka ?? selectedShift.started_at)}</p></div>
+              <div><p className="text-slate-500">Waktu Ditutup</p><p className="mt-1 font-semibold text-slate-800">{formatJam(selectedShift.closedAt ?? selectedShift.ditutup ?? selectedShift.ended_at)}</p></div>
+              <div><p className="text-slate-500">Total Penjualan</p><p className="mt-1 text-lg font-bold text-slate-900">{formatRupiah(selectedShift.totalPenjualan ?? selectedShift.totalSales ?? 0)}</p></div>
+              <div><p className="text-slate-500">Total Transaksi</p><p className="mt-1 text-lg font-bold text-slate-900">{selectedShift.totalTransaksi ?? selectedShift.transactionCount ?? 0}</p></div>
+            </div>
+
+            <button type="button" onClick={() => setSelectedShift(null)} className="mt-6 w-full rounded-xl border border-slate-300 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Tutup</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

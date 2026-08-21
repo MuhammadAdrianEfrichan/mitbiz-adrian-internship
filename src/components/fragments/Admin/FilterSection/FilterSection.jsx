@@ -1,4 +1,4 @@
-const FilterSection = ({ filters, onChange, periodOptions = [], branches = [] }) => {
+const FilterSection = ({ filters, onChange, periodOptions = [], branches = [], branchField = "outletId" }) => {
     const handleFieldChange = (field) => (event) => {
         onChange((current) => ({ ...current, [field]: event.target.value }))
     }
@@ -21,8 +21,8 @@ const FilterSection = ({ filters, onChange, periodOptions = [], branches = [] })
             <label className="text-sm font-medium text-slate-700">
                 Cabang
                 <select
-                    value={filters.outletId}
-                    onChange={handleFieldChange("outletId")}
+                    value={filters[branchField]}
+                    onChange={handleFieldChange(branchField)}
                     className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-blue-500 focus:outline-none"
                 >
                     <option value="">Semua Cabang</option>

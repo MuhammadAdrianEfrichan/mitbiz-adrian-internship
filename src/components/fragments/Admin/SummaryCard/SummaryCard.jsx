@@ -4,32 +4,31 @@ const formatRupiah = (value) => `Rp ${Number(value ?? 0).toLocaleString("id-ID")
 
 const SummaryCard = ({ summary }) => {
     const cards = [
-        {
-            label: `Total Penjualan (${summary?.periodLabel ?? "30 Hari"})`,
-            value: formatRupiah(summary?.totalSales ?? summary?.totalPenjualan ?? 0),
-            sub: `${summary?.totalTransactions ?? summary?.totalTransaksi ?? 0} transaksi`,
-            icon: FiDollarSign,
-        },
-        {
-            label: "Cabang Aktif",
-            value: summary?.activeBranches ?? summary?.cabangAktif ?? 0,
-            sub: `dari ${summary?.totalBranches ?? summary?.totalCabang ?? 0} total`,
-            icon: FiBriefcase,
-        },
-        {
-            label: "Kasir Aktif",
-            value: summary?.activeCashiers ?? summary?.kasirAktif ?? 0,
-            sub: "Kasir terdaftar",
-            icon: FiUsers,
-        },
-        {
-            label: "Produk Aktif",
-            value: summary?.activeProducts ?? summary?.produkAktif ?? 0,
-            sub: `dari ${summary?.totalProducts ?? summary?.totalProduk ?? 0} total`,
-            icon: FiBox,
-        },
-    ]
-
+    {
+        label: `Total Penjualan (30 Hari)`,
+        value: formatRupiah(summary?.totalPenjualan ?? summary?.totalSales ?? 0),
+        sub: `${summary?.totalTransaksi ?? summary?.totalTransactions ?? 0} transaksi`,
+        icon: FiDollarSign,
+    },
+    {
+        label: "Cabang Aktif",
+        value: summary?.cabangAktif ?? 0,
+        sub: `dari ${summary?.cabangTotal ?? 0} total`,
+        icon: FiBriefcase,
+    },
+    {
+        label: "Kasir Aktif",
+        value: summary?.kasirAktif ?? 0,
+        sub: `dari ${summary?.kasirTotal ?? 0} total`,
+        icon: FiUsers,
+    },
+    {
+        label: "Produk Aktif",
+        value: summary?.produkAktif ?? 0,
+        sub: `dari ${summary?.produkTotal ?? 0} total`,
+        icon: FiBox,
+    },
+]
     return (
         <section className="grid grid-cols-4 gap-4">
             {cards.map(({ label, value, sub, icon: Icon }) => (

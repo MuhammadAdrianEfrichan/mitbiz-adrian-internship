@@ -84,3 +84,15 @@ export const logout = async () => {
     if (!res.ok) throw new Error("Gagal logout");
     return res.json();
 };
+
+export const changePassword = async (payload) => {
+    const res = await fetch(`${environment.API_URL}/auth/change-password`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Gagal mengubah password");
+    return data;
+};

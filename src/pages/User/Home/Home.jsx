@@ -137,12 +137,16 @@ const Home = () => {
 
         fetchOpenBills();
     }, [user?.outletId]);
-
+    // console.log(JSON.parse(localStorage.getItem("mitbiz-open-bills") || "[]"));
     const handlePayBill = async () => {
-        if (!selectedBill || !selectedPaymentMethodId) {
-            notification.error('Pilih metode pembayaran terlebih dahulu.');
-            return;
-        }
+    if (!selectedBill || !selectedPaymentMethodId) {
+        notification.error('Pilih metode pembayaran terlebih dahulu.');
+        return;
+    }
+    if (!(selectedBill.items ?? []).length) {
+        notification.error('Tagihan ini tidak memiliki item, tidak bisa dibayar.');
+        return;
+    }
 
         setActionLoading(true);
         try {

@@ -41,6 +41,7 @@ const getReport = async (path, params) => {
 
 export const getProductsReport = (params = {}) => getReport("/reports/products", params);
 export const getStocksReport = (params = {}) => getReport("/reports/stocks", params);
+export const getSalesReport = (params = {}) => getReport("/reports/sales", params);
 
 export const downloadSalesReport = async (params = {}) => {
 	const response = await fetch(`${environment.API_URL}/reports/sales/export${buildQuery(params)}`, {

@@ -15,10 +15,10 @@ const FormLogin = ({
 }) => {
     const defaultFields = [
         {
-            label: 'Email',
+            label: 'Email/Username',
             name: 'email',
-            type: 'email',
-            placeholder: 'Input your store email',
+            type: 'text',
+            placeholder: 'Input your store email/ username',
             required: true,
         },
         {

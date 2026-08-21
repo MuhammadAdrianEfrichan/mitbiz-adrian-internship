@@ -276,6 +276,10 @@ const total = useMemo(() => taxableAmount + taxAmount, [taxableAmount, taxAmount
     };
 
     const handleConfirmPayment = async () => {
+    if (cart.length === 0) {
+        notification.error("Keranjang kosong, tidak bisa diproses.");
+        return;
+    }
     if (!selectedPaymentMethodId) {
         notification.error("Pilih metode pembayaran untuk menyelesaikan transaksi.");
         return;
@@ -297,10 +301,15 @@ const total = useMemo(() => taxableAmount + taxAmount, [taxableAmount, taxAmount
 };
 
 const handleOpenBill = () => {
+    if (cart.length === 0) {
+        notification.error("Keranjang kosong, tambahkan produk terlebih dahulu.");
+        return;
+    }
     if (!customerName.trim() || !tableNumber.trim()) {
         notification.error("Nama pelanggan dan nomor meja wajib diisi untuk Open Bill.");
         return;
     }
+
 
     setSelectedPaymentMethodId(null);
     setSubmitting(true);

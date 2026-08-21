@@ -21,12 +21,17 @@ import Riwayat from "../pages/Admin/Riwayat/Riwayat";
 import ShiftKasir from "../pages/Admin/ShiftKasir/ShiftKasir";
 import RegisterBisnis from "../pages/Register/RegisterBisnis";
 import ProtectedRoute from "./ProtectedRoute";
+import LupaPasswordPage from "../pages/Login/LupaPassword";
 
 
 const routes =[
     {
         path: '/',
         element : <Login />
+    },
+    {
+        path: '/lupa-password',
+        element: <LupaPasswordPage />,
     },
     {
         path : '/register-admin',

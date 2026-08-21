@@ -15,7 +15,7 @@ const Login = ()=>{
         label: 'Email',
         name: 'identifier',
         type: 'text',
-        placeholder: 'Masukkan email Anda',
+        placeholder: 'Masukkan email / username kasir',
         required: true,
     },
     {
@@ -96,7 +96,6 @@ const Login = ()=>{
                     onFieldChange={handleChange}
                     submitLabel={loading ? "Memproses..." : "Masuk"}
                 >
-                    <LupaPassword />
 
                     <Link to='/register-admin' className='text-xl text-blue-600 flex justify-end'>Register</Link>
 

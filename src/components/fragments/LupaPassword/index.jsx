@@ -1,3 +1,3 @@
-import LupaPassword from "./LupaPassword"; 
+import LupaPassword from "./LupaPassword";
 
-export default LupaPassword
+export default LupaPassword;
