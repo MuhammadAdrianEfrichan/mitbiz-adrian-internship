@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect } from "react";
 import { getMe } from "../services/auth.service";
 
 
@@ -11,7 +11,9 @@ export const AuthProvider = ({ children }) => {
     const fetchUser = async () => {
         try {
             const data = await getMe();
-            setUser(data.data ?? null);
+            const authenticatedUser = data.data?.user ?? data.data ?? data.user ?? null;
+            setUser(authenticatedUser);
+            return authenticatedUser;
         } catch {
             setUser(null);
         } finally {

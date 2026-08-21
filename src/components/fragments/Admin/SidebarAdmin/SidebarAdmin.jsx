@@ -17,6 +17,8 @@ import logo from '../../../../assets/image.png'
 import { useLocation, useNavigate } from "react-router-dom";
 
 import ProfileCard from "../ProfileCard";
+import UseAuth from "../../../hooks/UseAuth";
+import { getUserPermissions, getUserRole } from "../../../../utils/authorization";
 
 const menuGroups = [
   {
@@ -57,6 +59,17 @@ const SidebarAdmin = (props) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { children } = props;
+  const { user } = UseAuth();
+  const role = getUserRole(user);
+  const permissions = getUserPermissions(user);
+  const permissionByPath = {
+    "/home-admin": "MENU_DASHBOARD", "/laporan-admin": "MENU_REPORT", "/shift-kasir-admin": "MENU_SHIFT",
+    "/cabang-admin": "MENU_CABANG", "/kasir-admin": "MENU_STAFF", "/produk-admin": "MENU_PRODUCT",
+    "/kategori-admin": "MENU_CATEGORY", "/metode-pembayaran-admin": "MENU_PAYMENT", "/stok-admin": "MENU_STOCK",
+    "/penyesuaian-stok-admin": "MENU_STOCK_ADJUSTMENT", "/pengaturan-admin": "MENU_SETTING",
+    "/riwayat-transaksi-admin": "MENU_TRANSACTION_HISTORY",
+  };
+  const canAccess = (path) => role === "ADMIN" || !permissionByPath[path] || permissions.includes(permissionByPath[path]);
 
   const isCurrentPath = (path) => {
     if (!path) return false;
@@ -81,7 +94,7 @@ const SidebarAdmin = (props) => {
               )}
 
               <ul className="space-y-1">
-                {group.items.map(({ label, icon: Icon, path }) => {
+                {group.items.filter(({ path }) => canAccess(path)).map(({ label, icon: Icon, path }) => {
                   const active = isCurrentPath(path);
 
                   return (

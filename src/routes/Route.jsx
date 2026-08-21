@@ -1,5 +1,4 @@
 import Login from "../pages/Login";
-import RegisterAkun from '../pages/Register/RegisterAkun'
 import RegisterOutlet from '../pages/Register/RegisterOutlet'
 import RegisterDone from '../pages/Register/RegisterDone'
 import Home from "../pages/User/Home/Home";
@@ -62,26 +61,26 @@ const routes =[
     },
     {
         path: '/stok-kasir',
-        element :<ProtectedRoute >
+        element :<ProtectedRoute cashierOnly>
                 <Stok />
                 </ProtectedRoute> 
     },
     {
         path: '/transaksi-kasir',
-        element : <ProtectedRoute >
+        element : <ProtectedRoute cashierOnly>
         <Transaksi />
         </ProtectedRoute>
     },
     {
         path: '/riwayat-transaksi-kasir',
-        element : <ProtectedRoute >
+        element : <ProtectedRoute cashierOnly>
                 <RiwayatTransaksi />
                 </ProtectedRoute>
     },
     // Admin
     {
         path: '/home-admin',
-        element : <ProtectedRoute allowedRoles={["ADMIN", "SUPERVISOR"]}>
+        element : <ProtectedRoute adminOnly requiredPermission="MENU_DASHBOARD">
                     <HomeAdmin />
                 </ProtectedRoute>,
         children: [
@@ -93,67 +92,67 @@ const routes =[
 
     {
         path : '/laporan-admin',
-        element : <ProtectedRoute>
+        element : <ProtectedRoute adminOnly requiredPermission="MENU_REPORT">
                     <Laporan />
                     </ProtectedRoute>
     },
     {
         path : '/cabang-admin',
-        element : <ProtectedRoute>
+        element : <ProtectedRoute adminOnly requiredPermission="MENU_CABANG">
                     <Cabang />
                     </ProtectedRoute>
     },
     {
         path : '/kasir-admin',
-        element :<ProtectedRoute>
+        element :<ProtectedRoute adminOnly requiredPermission="MENU_STAFF">
                     <Kasir />
                 </ProtectedRoute> 
     },
     {
         path : '/produk-admin',
-        element : <ProtectedRoute>
+        element : <ProtectedRoute adminOnly requiredPermission="MENU_PRODUCT">
                     <Produk />
                     </ProtectedRoute>
     },
     {
         path : '/kategori-admin',
-        element :<ProtectedRoute> 
+        element :<ProtectedRoute adminOnly requiredPermission="MENU_CATEGORY"> 
                 <Kategori />
                 </ProtectedRoute>
     },
     {
         path : '/metode-pembayaran-admin',
-        element : <ProtectedRoute> 
+        element : <ProtectedRoute adminOnly requiredPermission="MENU_PAYMENT"> 
                     <Pembayaran />
                 </ProtectedRoute>
     },
     {
         path : '/stok-admin',
-        element : <ProtectedRoute> 
+        element : <ProtectedRoute adminOnly requiredPermission="MENU_STOCK"> 
                     <AdminStok />
                 </ProtectedRoute>
     },
     {
         path : '/penyesuaian-stok-admin',
-        element : <ProtectedRoute> 
+        element : <ProtectedRoute adminOnly requiredPermission="MENU_STOCK_ADJUSTMENT"> 
             <PenyesuaianStok />
             </ProtectedRoute>
     },
     {
         path : '/pengaturan-admin',
-        element :<ProtectedRoute> 
+        element :<ProtectedRoute adminOnly requiredPermission="MENU_SETTING"> 
                     <Pengaturan />
                 </ProtectedRoute> 
     },
     {
         path : '/riwayat-transaksi-admin',
-        element :<ProtectedRoute>
+        element :<ProtectedRoute adminOnly requiredPermission="MENU_TRANSACTION_HISTORY">
                     <Riwayat />
                 </ProtectedRoute>         
     },
     {
         path : '/shift-kasir-admin',
-        element :<ProtectedRoute>
+        element :<ProtectedRoute adminOnly requiredPermission="MENU_SHIFT">
                 <ShiftKasir />
                 </ProtectedRoute> 
     },

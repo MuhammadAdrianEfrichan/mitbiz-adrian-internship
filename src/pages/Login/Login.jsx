@@ -3,7 +3,6 @@ import LeftCopy from '../../components/fragments/LeftCopy'
 import LoginCard from '../../components/fragments/LoginCard'
 import ContentLogin from '../../components/fragments/ContentLogin'
 import TagLine from '../../components/fragments/TagLine'
-import LupaPassword from '../../components/fragments/LupaPassword'
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { login } from '../../services/auth.service'
@@ -63,8 +62,8 @@ const Login = ()=>{
         setLoading(true);
         try {
             const data = await login(form);
-            await refetchUser();
-        const role = data.data?.user?.role ?? data.user?.role;
+            const authenticatedUser = await refetchUser();
+        const role = authenticatedUser?.role?.name ?? authenticatedUser?.role ?? data.data?.user?.role ?? data.user?.role;
         if (role === "STAFF") {
             navigate("/dasboard-kasir");
         } else{
