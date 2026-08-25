@@ -64,11 +64,13 @@ const Login = ()=>{
         try {
             const data = await login(form);
             await refetchUser();
-            // Gunakan portalTarget dari response backend untuk redirect yang akurat
             const portalTarget = data.data?.portalTarget ?? data.portalTarget;
             if (portalTarget === "POS") {
                 navigate("/dasboard-kasir");
-            } else {
+            } else if(portalTarget === "SUPER-ADMIN"){
+                navigate("/dashboard-superadmin");
+            }
+            else {
                 navigate("/home-admin");
             }
         } catch (err) {

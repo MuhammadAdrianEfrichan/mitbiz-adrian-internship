@@ -3,32 +3,39 @@ import { Navigate, useLocation } from "react-router-dom";
 import { getMe } from "../services/auth.service";
 import UseAuth from "../components/hooks/UseAuth";
 
+
+const getHomeRoute = (user) => {
+    if (!user) return "/";
+
+    if (user.portalTarget === "SUPER-ADMIN" || user.role === "SUPER-ADMIN") {
+        return "/dashboard-superadmin";
+    }
+
+    const isKasirOnly =
+        user.portalTarget === "POS" ||
+        (user.role === "STAFF" && !user.permissions?.some((p) => p !== "MENU_POS"));
+
+    return isKasirOnly ? "/dasboard-kasir" : "/home-admin";
+};
+
 const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user, loading } = UseAuth();
     const currentRoute = useLocation().pathname;
 
-
-       if (loading) {
+    if (loading) {
         return <p>Memuat...</p>;
     }
 
-    if (!user && currentRoute !== '/') {
+    if (!user && currentRoute !== "/") {
         return <Navigate to="/" replace />;
     }
 
-    if (user && currentRoute === '/') {
-        // Gunakan portalTarget dari backend (dikirim via getMe)
-        // POS = kasir, selain itu = admin panel
-        const isKasirOnly = user.portalTarget === 'POS' || 
-            (user.role === "STAFF" && !user.permissions?.some(p => p !== "MENU_POS"));
-        const home = isKasirOnly ? "/dasboard-kasir" : "/home-admin";
-        return <Navigate to={home} replace />;
+    if (user && currentRoute === "/") {
+        return <Navigate to={getHomeRoute(user)} replace />;
     }
+
     if (user && allowedRoles && !allowedRoles.includes(user.role)) {
-        const isKasirOnly = user.portalTarget === 'POS' || 
-            (user.role === "STAFF" && !user.permissions?.some(p => p !== "MENU_POS"));
-        const home = isKasirOnly ? "/dasboard-kasir" : "/home-admin";
-        return <Navigate to={home} replace />;
+        return <Navigate to={getHomeRoute(user)} replace />;
     }
 
     return <>{children}</>;

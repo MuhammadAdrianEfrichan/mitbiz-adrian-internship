@@ -14,6 +14,7 @@ const OPEN_BILLS_STORAGE_KEY = "mitbiz-open-bills";
 const PAID_OPEN_BILLS_STORAGE_KEY = "mitbiz-paid-open-bills";
 const OPEN_BILLS_MIGRATION_KEY = "mitbiz-open-bills-migration-v2";
 const INITIAL_CASH_STORAGE_KEY = "mitbiz-initial-cash";
+const QUEUE_STORAGE_KEY = "mitbiz-queue-list";
 
 const formatRupiah = (value) => `Rp ${Number(value ?? 0).toLocaleString('id-ID')}`;
 const getBillTotal = (bill) => bill.total ?? bill.totalAmount ?? bill.amount ?? 0;
@@ -60,6 +61,7 @@ const Home = () => {
     month: "long",
     year: "numeric",
     });
+    const [queueList, setQueueList] = useState([]);
 
 
 
@@ -68,6 +70,19 @@ const Home = () => {
     minute: "2-digit",
     second: "2-digit",
     });
+
+    useEffect(() => {
+    const loadQueue = () => {
+        const stored = JSON.parse(localStorage.getItem(QUEUE_STORAGE_KEY) || "[]");
+        const today = new Date().toISOString().slice(0, 10);
+        // hanya tampilkan antrian hari ini, sesuai queueNumber yang reset tiap hari
+        const todaysQueue = stored.filter(
+            (q) => String(q.createdAt ?? '').slice(0, 10) === today
+        );
+        setQueueList(todaysQueue);
+    };
+    loadQueue();
+}, [user?.outletId]);
 
     const fetchInitialData = async () => {
     setLoading(true);
@@ -240,6 +255,30 @@ const getShiftStats = (transactions, shift) => {
         }, { sales: 0, tax: 0 });
 };
 
+const handleCompleteQueue = (queueId) => {
+    notification.confirm("Tandai antrian ini sebagai selesai dilayani?", () => {
+        const stored = JSON.parse(localStorage.getItem(QUEUE_STORAGE_KEY) || "[]");
+        const remaining = stored.filter((q) => q.id !== queueId);
+        localStorage.setItem(QUEUE_STORAGE_KEY, JSON.stringify(remaining));
+        setQueueList((prev) => prev.filter((q) => q.id !== queueId));
+        notification.success("Antrian selesai dilayani.");
+    }, { actionLabel: "Selesai" });
+};
+
+const getOrderTypeLabel = (orderType) => {
+    const type = String(orderType ?? '').toUpperCase();
+    if (type === 'DINE_IN') return 'Dine In';
+    if (type === 'TAKE_AWAY') return 'Take Away';
+    return type || '-';
+};
+
+const getOrderTypeBadgeClass = (orderType) => {
+    const type = String(orderType ?? '').toUpperCase();
+    if (type === 'DINE_IN') return 'bg-blue-100 text-blue-700';
+    if (type === 'TAKE_AWAY') return 'bg-purple-100 text-purple-700';
+    return 'bg-gray-100 text-gray-600';
+};
+
 
     if (loading) {
         return (
@@ -320,7 +359,7 @@ const getShiftStats = (transactions, shift) => {
                                 <button
                                     type="button"
                                     onClick={() => setShowInitialCashInput((visible) => !visible)}
-                                    className="rounded-lg border border-[#dfe3e8] px-3 py-2 text-xs font-semibold text-[#374151] hover:bg-[#f3f4f6]"
+                                    className="rounded-lg border border-[#dfe3e8] px-3 py-2 text-xs font-semibold text-[#374151]  hover:bg-[#f3f4f6]"
                                 >
                                     {showInitialCashInput ? 'Tutup' : 'Atur Modal Awal'}
                                 </button>
@@ -351,6 +390,67 @@ const getShiftStats = (transactions, shift) => {
                         </StatistikCard>
                     </div>
                 </section>
+
+                {/* Section Antrian — terpisah dari Open Bill */}
+{/* Section Antrian — terpisah dari Open Bill */}
+<section className="mt-8 border-t border-[#dfe3e8] pt-8">
+    <div className="flex items-center justify-between">
+        <div>
+            <h2 className="text-[1.9rem] font-semibold tracking-[-0.02em] text-[#111827]">Antrian</h2>
+            <p className="mt-1 text-[#6b7280]">Pelanggan yang sudah membayar dan menunggu pesanan</p>
+        </div>
+        <span className="rounded-full bg-green-50 px-3 py-1 text-sm font-semibold text-green-600">
+            {queueList.length} mengantri
+        </span>
+    </div>
+
+    {queueList.length === 0 ? (
+        <p className="mt-5 rounded-xl border border-dashed border-[#cbd5e1] bg-white p-6 text-[#6b7280]">
+            Belum ada antrian.
+        </p>
+    ) : (
+        <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {queueList.map((queue) => (
+                <article key={queue.id} className="rounded-xl border border-[#dfe3e8] bg-white p-4 shadow-sm">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <p className="text-xs font-semibold uppercase text-green-600">Mengantri</p>
+                                <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${getOrderTypeBadgeClass(queue.orderType)}`}>
+                                    {getOrderTypeLabel(queue.orderType)}
+                                </span>
+                            </div>
+                            <h3 className="text-3xl font-extrabold text-[#0f74d7]">
+                                #{queue.queueNumber ?? "-"}
+                            </h3>
+                        </div>
+                        <span className="h-3 w-3 rounded-full bg-green-400" title="Menunggu" />
+                    </div>
+                    <p className="mt-2 text-sm text-[#6b7280]">
+                        {queue.customerName || "Pelanggan umum"}
+                        {queue.tableNumber ? ` · Meja ${queue.tableNumber}` : ""}
+                    </p>
+                    <p className="mt-2 text-sm text-[#6b7280]">
+                        {(queue.items ?? [])
+                            .map((item) => `${item.name ?? "Produk"} x${item.quantity}`)
+                            .join(", ")}
+                    </p>
+                    <div className="mt-3 border-t border-[#e5e7eb] pt-3">
+                        <p className="text-sm text-[#6b7280]">Total Dibayar</p>
+                        <p className="text-xl font-bold">{formatRupiah(queue.total)}</p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => handleCompleteQueue(queue.id)}
+                        className="mt-3 w-full rounded-xl bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700"
+                    >
+                        Selesai Dilayani
+                    </button>
+                </article>
+            ))}
+        </div>
+    )}
+</section>
 
                 <section className="mt-8 border-t border-[#dfe3e8] pt-8">
                     <div className="flex items-center justify-between">
@@ -392,6 +492,7 @@ const getShiftStats = (transactions, shift) => {
                         </div>
                     )}
                 </section>
+                
             </main>
 
             {selectedBill && (

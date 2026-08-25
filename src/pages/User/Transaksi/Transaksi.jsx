@@ -12,8 +12,10 @@ import { createTransactions, getMetodePembayaran,getTransaction,getPajak } from 
 import { useNotification } from "../../../components/ui/NotificationCenter";
 import PaymentModal from "../../../components/fragments/User/PaymentModal"
 import { AuthContext } from "../../../context/AuthContext";
+import QueueNumberModal from "../../../components/fragments/User/QueueNumberModal";
 
 const OPEN_BILLS_STORAGE_KEY = "mitbiz-open-bills";
+const QUEUE_STORAGE_KEY = "mitbiz-queue-list";
 
 const getDiscountRate = (discount) => {
     const rate = Number(discount);
@@ -83,6 +85,8 @@ const Transaksi = () => {
     const [customerName, setCustomerName] = useState("");
     const [tableNumber, setTableNumber] = useState("");
     const [discountConfig, setDiscountConfig] = useState({ enabled: false, percentage: 0, minPurchase: 0 });
+    const [lastTransaction, setLastTransaction] = useState(null);
+const [showQueueModal, setShowQueueModal] = useState(false);
 
 
 
@@ -275,7 +279,7 @@ const total = useMemo(() => taxableAmount + taxAmount, [taxableAmount, taxAmount
         setShowPaymentModal(false);
     };
 
-    const handleConfirmPayment = async () => {
+  const handleConfirmPayment = async () => {
     if (cart.length === 0) {
         notification.error("Keranjang kosong, tidak bisa diproses.");
         return;
@@ -287,11 +291,34 @@ const total = useMemo(() => taxableAmount + taxAmount, [taxableAmount, taxAmount
     setSubmitting(true);
     try {
         const payload = buildTransactionPayload();
+        const response = await createTransactions(payload);
 
-        await createTransactions(payload);
+        const responseData = response.data?.data ?? response.data ?? {};
+        const queueNumber = responseData.queueNumber ?? null;
 
+        const queueEntry = {
+            id: responseData.id ?? responseData.transaction?.id ?? `queue-${Date.now()}`,
+            queueNumber,
+            invoice: responseData.invoice ?? null,
+            customerName: customerName.trim(),
+            tableNumber: tableNumber.trim(),
+            orderType,
+            total,
+            items: cart.map((item) => ({
+                name: item.name,
+                quantity: item.quantity,
+                productId: item.id,
+            })),
+            createdAt: new Date().toISOString(),
+        };
+
+        // simpan ke daftar antrian lokal (dipisah dari open bill)
+        const existingQueue = JSON.parse(localStorage.getItem(QUEUE_STORAGE_KEY) || "[]");
+        localStorage.setItem(QUEUE_STORAGE_KEY, JSON.stringify([...existingQueue, queueEntry]));
+
+        setLastTransaction(queueEntry);
         clearTransaction();
-        notification.success("Transaksi berhasil disimpan.");
+        setShowQueueModal(true);
     } catch (err) {
         console.error(err);
         notification.error(err.message || "Transaksi gagal disimpan. Silakan coba lagi.");
@@ -538,6 +565,15 @@ const handleOpenBill = () => {
             onTableNumberChange={setTableNumber}
         />
     )}
+    {showQueueModal && (
+    <QueueNumberModal
+        transaction={lastTransaction}
+        onClose={() => {
+            setShowQueueModal(false);
+            setLastTransaction(null);
+        }}
+    />
+)}
         </div>
     );
 };

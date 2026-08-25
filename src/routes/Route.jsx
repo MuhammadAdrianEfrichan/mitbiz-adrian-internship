@@ -21,6 +21,12 @@ import Riwayat from "../pages/Admin/Riwayat/Riwayat";
 import ShiftKasir from "../pages/Admin/ShiftKasir/ShiftKasir";
 import RegisterBisnis from "../pages/Register/RegisterBisnis";
 import ProtectedRoute from "./ProtectedRoute";
+import Dashboard from "../pages/SuperAdmin/Dashboard";
+import ManajementBisnis from "../pages/SuperAdmin/ManajementBisnis";
+import ManajementUser from "../pages/SuperAdmin/ManajmentUser";
+import PaketLangganan from "../pages/SuperAdmin/PaketLangganan";
+import LaporanSuperAdmin from "../pages/SuperAdmin/Laporan";
+import PengaturanSuperAdmin from "../pages/SuperAdmin/Pengaturan";
 
 
 const routes =[
@@ -152,6 +158,58 @@ const routes =[
                 <ShiftKasir />
                 </ProtectedRoute> 
     },
+
+    // SuperAdmin
+
+   // SuperAdmin
+{
+    path: '/dashboard-superadmin',
+    element: (
+        <ProtectedRoute allowedRoles={["SUPER-ADMIN"]}>
+            <Dashboard />
+        </ProtectedRoute>
+    ),
+},
+{
+    path: '/manajementbisnis-superadmin',
+    element: (
+        <ProtectedRoute allowedRoles={["SUPER-ADMIN"]}>
+            <ManajementBisnis />
+        </ProtectedRoute>
+    ),
+},
+{
+    path: '/user-superadmin',
+    element: (
+        <ProtectedRoute allowedRoles={["SUPER-ADMIN"]}>
+            <ManajementUser />
+        </ProtectedRoute>
+    ),
+},
+{
+    path: '/paket-langganan-super-admin',
+    element: (
+        <ProtectedRoute allowedRoles={["SUPER-ADMIN"]}>
+            <PaketLangganan />
+        </ProtectedRoute>
+    ),
+},
+{
+    path: '/laporan-super-admin',
+    element: (
+        <ProtectedRoute allowedRoles={["SUPER-ADMIN"]}>
+            <LaporanSuperAdmin />
+        </ProtectedRoute>
+    ),
+},
+{
+    path: '/pengaturan-super-admin',
+    element: (
+        <ProtectedRoute allowedRoles={["SUPER-ADMIN"]}>
+            <PengaturanSuperAdmin />
+        </ProtectedRoute>
+    ),
+},
 ]
 
 export default routes;

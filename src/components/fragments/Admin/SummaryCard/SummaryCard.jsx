@@ -30,7 +30,7 @@ const SummaryCard = ({ summary }) => {
     },
 ]
     return (
-        <section className="grid grid-cols-4 gap-4">
+        <section className="grid grid-cols-4 gap-4 mb-6">
             {cards.map(({ label, value, sub, icon: Icon }) => (
                 <div key={label} className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
                     <div className="mb-2 flex items-center justify-between">

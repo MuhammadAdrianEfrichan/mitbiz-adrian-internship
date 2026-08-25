@@ -7,8 +7,9 @@ const StatistikCard = (props)=>{
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#f3f4f6] text-[#374151]">
                     {icon}
                     </div>
-                    {action}
+                    
             </div>
+            {action}
             
             <p className="mt-8 text-[2.9rem] font-bold leading-none tracking-[-0.06em] text-[#111827]">
             {value ?? 'Rp 0'}
