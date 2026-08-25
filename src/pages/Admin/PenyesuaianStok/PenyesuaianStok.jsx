@@ -15,6 +15,7 @@ const initialForm = {
   notes: "",
   outletId: "",
   productId: "",
+  isUnlimited: false,
 };
 const PenyesuaianStok = () => {
   const notification = useNotification();
@@ -81,6 +82,7 @@ useEffect(() => {
       notes: item.notes ?? "",
       outletId: item.outletId ?? "",
       productId: item.productId ?? "",
+      isUnlimited: item.isUnlimited ?? false,
     });
     setShowProduct(true);
   };
@@ -100,36 +102,61 @@ useEffect(() => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-   const handleSubmit = async (e) => {
-      e.preventDefault();
-      const quantityNumber = Number(formData.quantity);
-      if (!formData.quantity || isNaN(quantityNumber) || quantityNumber <= 0) {
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!formData.isUnlimited) {
+    const quantityNumber = Number(formData.quantity);
+    if (!formData.quantity || isNaN(quantityNumber) || quantityNumber <= 0) {
       notification.warning("Jumlah harus berupa angka lebih dari 0.");
       return;
+    }
   }
-      setIsSubmitting(true);
-  
-      try {
-        const now = new Date();
-        const payload = {
-          type: formData.type,
-          quantity: quantityNumber,
-          notes: formData.notes,
-          outletId: formData.outletId,
-          productId: formData.productId,
-          createdAt: now.toISOString()
-        };
-        console.log(payload);
-        await createPenstok(payload);
-        handleSaveSuccess();
-        notification.success("Penyesuaian stok berhasil disimpan.");
-      } catch (err) {
-        console.error(err);
-        notification.error(err.message || "Gagal menyimpan penyesuaian stok.");
-      } finally {
-        setIsSubmitting(false);
-      }
+
+  setIsSubmitting(true);
+
+  try {
+    const now = new Date();
+    const payload = {
+      type: formData.type,
+      quantity: formData.isUnlimited ? null : Number(formData.quantity),
+      isUnlimited: formData.isUnlimited,
+      notes: formData.notes,
+      outletId: formData.outletId,
+      productId: formData.productId,
+      createdAt: now.toISOString(),
     };
+    console.log(payload);
+    await createPenstok(payload);
+    handleSaveSuccess();
+    notification.success("Penyesuaian stok berhasil disimpan.");
+  } catch (err) {
+    console.error(err);
+    notification.error(err.message || "Gagal menyimpan penyesuaian stok.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+    const handleUnlimitedToggle = (e) => {
+  const checked = e.target.checked;
+  setFormData((prev) => ({
+    ...prev,
+    isUnlimited: checked,
+    quantity: checked ? "" : prev.quantity,
+  }));
+};
+
+// opsional: auto-centang saat pilih produk yang sudah ditandai unlimited di master produk
+const handleProductChange = (e) => {
+  const productId = e.target.value;
+  const selected = products.find((p) => String(p.id) === String(productId));
+  setFormData((prev) => ({
+    ...prev,
+    productId,
+    isUnlimited: selected?.isUnlimitedStock ?? prev.isUnlimited,
+  }));
+};
 
   return (
     <SidebarAdmin>
@@ -176,7 +203,7 @@ useEffect(() => {
                           <select
                             name="productId"
                             value={formData.productId}
-                            onChange={handleChange}
+                            onChange={handleProductChange}
                             className="w-full border-0 bg-transparent px-4 py-3 text-base text-slate-700 focus:outline-none"
                           >
                             <option value="">Pilih Product</option>
@@ -202,22 +229,37 @@ useEffect(() => {
                             <option value="CORRECTION">Koreksi</option>
                           </select>
                         </div>
-      
                         <div className="grid grid-cols-[160px_minmax(0,1fr)] border-b border-gray-400 bg-[#eff4f7]">
-                          <div className="flex items-center px-4 py-3 text-base font-medium text-slate-700">Jumlah</div>
-                          <input
-                            type="text"
-                            name="quantity"
-                            inputMode="numeric" 
-                            value={formData.quantity}
-                            onChange={(e) => {
-                            const value = e.target.value.replace(/[^0-9]/g, ""); 
-                            setFormData((prev) => ({ ...prev, quantity: value }));
-                          }}
-                            placeholder="0"
-                            className="w-full border-0 bg-transparent px-4 py-3 text-base text-slate-700 placeholder:text-slate-400 focus:outline-none"
-                          />
-                        </div>
+  <div className="flex items-center px-4 py-3 text-base font-medium text-slate-700">Stok Unlimited</div>
+  <div className="flex items-center px-4 py-3">
+    <label className="flex items-center gap-2 text-sm text-slate-700">
+      <input
+        type="checkbox"
+        checked={formData.isUnlimited}
+        onChange={handleUnlimitedToggle}
+        className="h-4 w-4 rounded border-gray-400"
+      />
+      Produk ini tidak pernah habis (contoh: Americano)
+    </label>
+  </div>
+</div>
+
+      <div className="grid grid-cols-[160px_minmax(0,1fr)] border-b border-gray-400 bg-[#eff4f7]">
+        <div className="flex items-center px-4 py-3 text-base font-medium text-slate-700">Jumlah</div>
+        <input
+          type="text"
+          name="quantity"
+          inputMode="numeric"
+          disabled={formData.isUnlimited}
+          value={formData.isUnlimited ? "" : formData.quantity}
+          onChange={(e) => {
+            const value = e.target.value.replace(/[^0-9]/g, "");
+            setFormData((prev) => ({ ...prev, quantity: value }));
+          }}
+          placeholder={formData.isUnlimited ? "Tidak terbatas" : "0"}
+          className="w-full border-0 bg-transparent px-4 py-3 text-base text-slate-700 placeholder:text-slate-400 focus:outline-none disabled:bg-slate-200 disabled:cursor-not-allowed"
+        />
+      </div>
 
                          <div className="grid grid-cols-[160px_minmax(0,1fr)] border-b border-gray-400 bg-[#eff4f7]">
                           <div className="flex items-center px-4 py-3 text-base font-medium text-slate-700">Alasan</div>

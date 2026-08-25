@@ -391,8 +391,6 @@ const getOrderTypeBadgeClass = (orderType) => {
                     </div>
                 </section>
 
-                {/* Section Antrian — terpisah dari Open Bill */}
-{/* Section Antrian — terpisah dari Open Bill */}
 <section className="mt-8 border-t border-[#dfe3e8] pt-8">
     <div className="flex items-center justify-between">
         <div>
