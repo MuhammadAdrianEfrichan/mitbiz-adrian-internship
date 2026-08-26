@@ -6,9 +6,9 @@ import { BiDetail } from "react-icons/bi";
 import { PiBasket } from "react-icons/pi";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { categoryProduct, getProduct } from "../../../services/product.service";
+import { categoryProduct, getProduct } from "../../../services/Admin/product.service";
 import { FiRefreshCw, FiTrash2 } from "react-icons/fi";
-import { createTransactions, getMetodePembayaran,getTransaction,getPajak } from "../../../services/transaction.service";
+import { createTransactions, getMetodePembayaran,getTransaction,getPajak } from "../../../services/User/transaction.service";
 import { useNotification } from "../../../components/ui/NotificationCenter";
 import PaymentModal from "../../../components/fragments/User/PaymentModal"
 import { AuthContext } from "../../../context/AuthContext";

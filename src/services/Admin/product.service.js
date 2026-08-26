@@ -1,4 +1,4 @@
-import { environment } from "../constant/environment";
+import { environment } from "../../constant/environment";
 
 
 export const getProduct = async () => {

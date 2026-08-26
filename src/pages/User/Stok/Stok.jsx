@@ -1,11 +1,11 @@
 import  MainKasir  from "../../../components/fragments/User/MainKasir"
 import { useEffect, useState, useMemo } from "react";
 import { FiBox, FiSearch, FiAlertTriangle, FiPackage } from "react-icons/fi";
-import { getPenstok } from "../../../services/penstok.service";
-import { getProduct } from "../../../services/product.service";
+import { getPenstok } from "../../../services/Admin/penstok.service";
+import { getProduct } from "../../../services/Admin/product.service";
 import { formatTanggal } from "../../../utils/fromatDate";
 import { useSearchParams } from "react-router-dom";
-import { getStocks } from "../../../services/stock.service";
+import { getStocks } from "../../../services/User/stock.service";
 const Stok = ()=>{
     const [penStok, setPenStok] = useState([]);
   const [products, setProducts] = useState([]);

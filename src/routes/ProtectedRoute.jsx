@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { getMe } from "../services/auth.service";
+import { getMe } from "../services/Login/auth.service";
 import UseAuth from "../components/hooks/UseAuth";
 
 
 const getHomeRoute = (user) => {
     if (!user) return "/";
 
-    if (user.portalTarget === "SUPER-ADMIN" || user.role === "SUPER-ADMIN") {
+    if (user.portalTarget === "SUPER_ADMIN" || user.role === "SUPER_ADMIN") {
         return "/dashboard-superadmin";
     }
 

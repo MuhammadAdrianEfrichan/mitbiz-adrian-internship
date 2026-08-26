@@ -1,4 +1,4 @@
-import { environment } from "../constant/environment";
+import { environment } from "../../constant/environment";
 
 export const getDasboard = async () => {
     const res = await fetch(`${environment.API_URL}/dashboard`, {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { FiEdit2, FiPackage, FiSearch, FiTrash2 } from "react-icons/fi";
-import { categoryProduct, deleteProduct, getProduct, searchProduct } from "../../../../services/product.service";
+import { categoryProduct, deleteProduct, getProduct, searchProduct } from "../../../../services/Admin/product.service";
 import { useSearchParams } from "react-router-dom";
 import { useNotification } from "../../../ui/NotificationCenter";
 

@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { FiEdit2, FiSearch, FiTrash2, FiUsers, FiPlus } from "react-icons/fi";
 import { useSearchParams } from "react-router-dom";
-import { getKasir, searchKasir, deleteKasir } from "../../../../services/kasir.service";
+import { getKasir, searchKasir, deleteKasir } from "../../../../services/Admin/kasir.service";
 import { useNotification } from "../../../ui/NotificationCenter";
 
 const KasirAdmin = ({

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import UseAuth from "../../../hooks/UseAuth";
-import { logout } from "../../../../services/auth.service";
+import { logout } from "../../../../services/Login/auth.service";
 import { BiLogOut } from "react-icons/bi";
 import Button from "../../../ui/Button";
 import { useNotification } from "../../../ui/NotificationCenter";

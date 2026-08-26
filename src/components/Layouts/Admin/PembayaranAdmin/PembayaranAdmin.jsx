@@ -1,5 +1,5 @@
 import { FiEdit2, FiSearch, FiTrash2 } from "react-icons/fi";
-import { deletePembayaran, getPembayaran, searchPembayaran } from "../../../../services/pembayaran.service";
+import { deletePembayaran, getPembayaran, searchPembayaran } from "../../../../services/Admin/pembayaran.service";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useNotification } from "../../../ui/NotificationCenter";

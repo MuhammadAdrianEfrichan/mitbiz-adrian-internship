@@ -1,4 +1,4 @@
-import { environment } from "../constant/environment";
+import { environment } from "../../constant/environment";
 
 const buildQuery = (params = {}) => {
 	const query = new URLSearchParams();

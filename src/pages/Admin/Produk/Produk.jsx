@@ -3,8 +3,8 @@ import MainAdmin from "../../../components/fragments/Admin/MainAdmin";
 import ProdukAdmin from "../../../components/Layouts/Admin/ProdukAdmin";
 import { FiPlus, FiUpload, FiX } from "react-icons/fi";
 import { useEffect, useState } from "react";
-import { createProduct, getProduct, updateProduct } from "../../../services/product.service";
-import { getCategory } from "../../../services/category.service";
+import { createProduct, getProduct, updateProduct } from "../../../services/Admin/product.service";
+import { getCategory } from "../../../services/Admin/category.service";
 import { useNotification } from "../../../components/ui/NotificationCenter";
 
 const initialForm = {

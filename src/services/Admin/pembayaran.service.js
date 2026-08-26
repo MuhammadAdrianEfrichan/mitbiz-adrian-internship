@@ -1,4 +1,4 @@
-import { environment } from "../constant/environment";
+import { environment } from "../../constant/environment";
 
 
 // READ — ambil semua cabang milik bisnis user yang login

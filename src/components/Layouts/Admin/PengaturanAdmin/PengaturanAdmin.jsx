@@ -1,9 +1,9 @@
 import { useContext, useEffect, useState } from "react";
 import { FiRefreshCcw, FiSave } from "react-icons/fi";
 import { AuthContext } from "../../../../context/AuthContext";
-import { getMe } from "../../../../services/auth.service";
-import { getBranches } from "../../../../services/branch.service";
-import { getSetting, updateBusinessSetting } from "../../../../services/setting.service";
+import { getMe } from "../../../../services/Login/auth.service";
+import { getBranches } from "../../../../services/Admin/branch.service";
+import { getSetting, updateBusinessSetting } from "../../../../services/Admin/setting.service";
 import { useNotification } from "../../../ui/NotificationCenter";
 
 const initialForm = { businessName: "", phone: "", email: "", address: "", discountEnabled: true, discountPercentage: "", minPurchaseAmount: "", taxEnabled: true, taxPercentage: "" };

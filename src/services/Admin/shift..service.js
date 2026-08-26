@@ -1,4 +1,4 @@
-import { environment } from "../constant/environment";
+import { environment } from "../../constant/environment";
 
 export const getShiftActive = async () => {
     const res = await fetch(`${environment.API_URL}/shifts/active`, {

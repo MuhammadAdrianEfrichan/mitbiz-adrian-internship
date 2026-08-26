@@ -5,7 +5,7 @@ import PenjualanPerPembayaran from "../../../fragments/Admin/PenjualanPerPembaya
 import ProdukTerLaris from "../../../fragments/Admin/ProdukTerLaris";
 import SummaryCard from "../../../fragments/Admin/SummaryCard";
 import TrenDataAdmin from "../../../fragments/Admin/TrendDataAdmin";
-import { getDasboard } from "../../../../services/dasboard.service";
+import { getDasboard } from "../../../../services/Admin/dasboard.service";
 
 const staticSummary = {
     totalPenjualan: 24439540,

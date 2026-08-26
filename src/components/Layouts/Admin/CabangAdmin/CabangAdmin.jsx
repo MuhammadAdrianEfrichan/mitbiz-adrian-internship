@@ -1,5 +1,5 @@
 import { FiEdit2, FiEye, FiTrash2, FiBriefcase, FiCheckCircle, FiXCircle } from "react-icons/fi";
-import { deleteBranch, getBranches } from "../../../../services/branch.service";
+import { deleteBranch, getBranches } from "../../../../services/Admin/branch.service";
 import { useEffect, useState } from "react";
 import { useNotification } from "../../../ui/NotificationCenter";
 

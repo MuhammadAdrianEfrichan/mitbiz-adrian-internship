@@ -1,5 +1,5 @@
   import { FiArrowDown, FiArrowUp, FiSearch } from "react-icons/fi";
-  import { categoryPenStok, getPenstok, searchPenStok } from "../../../../services/penstok.service";
+  import { categoryPenStok, getPenstok, searchPenStok } from "../../../../services/Admin/penstok.service";
   import { useEffect, useState } from "react";
   import { formatTanggal } from "../../../../utils/fromatDate";
   import { ADJUSTMENT_TYPE_CONFIG, DEFAULT_TYPE_CONFIG } from "../../../../utils/adjustmantType";

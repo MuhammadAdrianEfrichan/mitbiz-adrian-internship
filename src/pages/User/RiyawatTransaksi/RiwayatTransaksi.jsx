@@ -1,10 +1,10 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import MainKasir from "../../../components/fragments/User/MainKasir"
 import InputSearch from "../../../components/ui/InputSearch"
-import { getTransaction } from "../../../services/transaction.service";
-import { getBranches } from "../../../services/branch.service";
-import { getSetting } from "../../../services/setting.service";
-import { getMe } from "../../../services/auth.service";
+import { getTransaction } from "../../../services/User/transaction.service";
+import { getBranches } from "../../../services/Admin/branch.service";
+import { getSetting } from "../../../services/Admin/setting.service";
+import { getMe } from "../../../services/Login/auth.service";
 import { AuthContext } from "../../../context/AuthContext";
 import { FiEye, FiPrinter, FiX } from "react-icons/fi";
 

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { FiDownload, FiEye, FiSearch, FiX } from "react-icons/fi";
-import { getTransaction } from "../../../../services/transaction.service";
-import { getBranches } from "../../../../services/branch.service";
+import { getTransaction } from "../../../../services/User/transaction.service";
+import { getBranches } from "../../../../services/Admin/branch.service";
 
 const formatRupiah = (value) => `Rp ${Number(value ?? 0).toLocaleString("id-ID")}`;
 const formatDate = (value) => value ? new Date(value).toLocaleString("id-ID", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "-";

@@ -2,11 +2,11 @@ import { FiPlus, FiUpload } from "react-icons/fi";
 import MainAdmin from "../../../components/fragments/Admin/MainAdmin";
 import SidebarAdmin from "../../../components/fragments/Admin/SidebarAdmin";
 import PenyesuaianStokAdmin from "../../../components/Layouts/Admin/PenyesuaianStokAdmin";
-import { getProduct } from "../../../services/product.service";
-import { getCategory } from "../../../services/category.service";
+import { getProduct } from "../../../services/Admin/product.service";
+import { getCategory } from "../../../services/Admin/category.service";
 import { useEffect, useState } from "react";
-import { getBranches } from "../../../services/branch.service";
-import { createPenstok } from "../../../services/penstok.service";
+import { getBranches } from "../../../services/Admin/branch.service";
+import { createPenstok } from "../../../services/Admin/penstok.service";
 import { useNotification } from "../../../components/ui/NotificationCenter";
 
 const initialForm = {
@@ -117,15 +117,15 @@ useEffect(() => {
 
   try {
     const now = new Date();
-    const payload = {
-      type: formData.type,
-      quantity: formData.isUnlimited ? null : Number(formData.quantity),
-      isUnlimited: formData.isUnlimited,
-      notes: formData.notes,
-      outletId: formData.outletId,
-      productId: formData.productId,
-      createdAt: now.toISOString(),
-    };
+      const payload = {
+  type: formData.type,
+  quantity: formData.isUnlimited ? null : Number(formData.quantity),
+  isUnlimited: formData.isUnlimited,
+  notes: formData.notes,
+  outletId: formData.outletId,
+  productId: formData.productId,
+  createdAt: now.toISOString(),
+};
     console.log(payload);
     await createPenstok(payload);
     handleSaveSuccess();
@@ -261,7 +261,7 @@ const handleProductChange = (e) => {
         />
       </div>
 
-                         <div className="grid grid-cols-[160px_minmax(0,1fr)] border-b border-gray-400 bg-[#eff4f7]">
+                        <div className="grid grid-cols-[160px_minmax(0,1fr)] border-b border-gray-400 bg-[#eff4f7]">
                           <div className="flex items-center px-4 py-3 text-base font-medium text-slate-700">Alasan</div>
                           <input
                             type="text"

@@ -1,7 +1,7 @@
 import SidebarAdmin from "../../../components/fragments/Admin/SidebarAdmin";
 import MainAdmin from "../../../components/fragments/Admin/MainAdmin";
 import CabangAdmin from "../../../components/Layouts/Admin/CabangAdmin";
-import { createBranch, updateBranch } from "../../../services/branch.service";
+import { createBranch, updateBranch } from "../../../services/Admin/branch.service";
 import { FiPlus, FiX } from "react-icons/fi";
 import { useState } from "react";
 import { useNotification } from "../../../components/ui/NotificationCenter";

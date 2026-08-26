@@ -1,10 +1,10 @@
 import SidebarAdmin from "../../../components/fragments/Admin/SidebarAdmin";
 import MainAdmin from "../../../components/fragments/Admin/MainAdmin";
 import KasirAdmin from "../../../components/Layouts/Admin/KasirAdmin";
-import { getBranches } from "../../../services/branch.service";
+import { getBranches } from "../../../services/Admin/branch.service";
 import { ALL_PERMISSIONS } from "../../../constant/permissionts";
-import { tambahKasir, getKasir, updateKasir, deleteKasir, searchKasir } from "../../../services/kasir.service";
-import { createRoles, getRoles, updateRoles, deleteRoles } from "../../../services/role.service";
+import { tambahKasir, getKasir, updateKasir, deleteKasir, searchKasir } from "../../../services/Admin/kasir.service";
+import { createRoles, getRoles, updateRoles, deleteRoles } from "../../../services/Admin/role.service";
 import { FiPlus, FiX } from "react-icons/fi";
 import { useEffect, useState } from "react";
 import { useNotification } from "../../../components/ui/NotificationCenter";

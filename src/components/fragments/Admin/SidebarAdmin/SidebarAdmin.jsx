@@ -77,18 +77,18 @@ const SidebarAdmin = (props) => {
   };
   
   return (
-    <div className="flex h-screen bg-[#f3f4f6] text-slate-800">
-        <aside className="w-70 h-screen bg-[#f5f5f5] border-r border-slate-200 flex flex-col justify-between px-4 py-5 shadow-sm">
-      <div>
-        <div className="absolute z-10 top-1 w-[50%]">
-            <img src={logo} alt="Mitbiz" className="h-13 w-auto" />
+    <div className="flex h-screen min-w-0 overflow-hidden bg-[#f3f4f6] text-slate-800">
+        <aside className="w-70 h-screen shrink-0 overflow-hidden bg-[#f5f5f5] border-r border-slate-200 flex flex-col justify-between px-4 py-4 shadow-sm">
+      <div className="[direction:ltr]">
+        <div className="mb-2 flex h-12 items-start px-3">
+            <img src={logo} alt="Mitbiz" className="h-12 w-auto" />
         </div>
 
-        <nav className="space-y-6 pt-15">
+        <nav className="space-y-4">
           {menuGroups.map((group) => (
-            <div key={group.title} className="space-y-2">
+            <div key={group.title} className="space-y-1.5">
               {group.title !== "Dashboard" && (
-                <h2 className="px-3 text-[0.8rem] font-semibold text-slate-500 uppercase tracking-wide">
+                <h2 className="px-3 text-[0.78rem] font-semibold text-slate-500 uppercase tracking-wide">
                   {group.title}
                 </h2>
               )}
@@ -103,7 +103,7 @@ const SidebarAdmin = (props) => {
                         onClick={() => path && navigate(path)}
                         type="button"
                         className={[
-                          "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[0.96rem] font-medium transition-all duration-200 cursor-pointer",
+                          "flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[0.94rem] font-medium transition-all duration-200 cursor-pointer",
                           active
                             ? "bg-[#EAF2FF] text-[#0a5cb3] shadow-sm"
                             : "text-slate-700 hover:bg-slate-200/70 hover:text-slate-900",
@@ -142,7 +142,9 @@ const SidebarAdmin = (props) => {
         <LogoutButton />
         </div>
       </div> */}
-      <ProfileCard />
+      <div className="[direction:ltr]">
+        <ProfileCard />
+      </div>
       
     </aside>
     {children}

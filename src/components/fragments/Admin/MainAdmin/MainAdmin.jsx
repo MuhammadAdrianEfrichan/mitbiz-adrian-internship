@@ -13,8 +13,8 @@ const MainAdmin = (props) => {
   } = props;
 
   return (
-    <main className="flex-1 overflow-y-auto p-5">
-      <div className="mb-5 flex items-center justify-between">
+    <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto p-5">
+      <div className="mb-5 flex min-w-0 items-center justify-between gap-4">
         <div>
           <h1 className="text-[2.1rem] font-bold tracking-tight text-slate-800">{title}</h1>
           <p className="text-sm text-slate-500">{subtitle}</p>

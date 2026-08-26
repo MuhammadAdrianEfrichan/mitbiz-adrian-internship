@@ -4,7 +4,7 @@ import KategoriAdmin from "../../../components/Layouts/Admin/KategoriAdmin";
 import {FiPlus, FiX} from "react-icons/fi";
 import { useState } from "react";
 import { useNotification } from "../../../components/ui/NotificationCenter";
-import { createCategory, updateCategory } from "../../../services/category.service";
+import { createCategory, updateCategory } from "../../../services/Admin/category.service";
 
 const initialForm = {
   name: "",

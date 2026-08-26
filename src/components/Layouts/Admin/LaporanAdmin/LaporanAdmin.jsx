@@ -5,15 +5,15 @@ import PenjualanPerCabangAdmin from "../../../fragments/Admin/PenjualanPerCabang
 import ProdukTerLaris from "../../../fragments/Admin/ProdukTerLaris"
 import SummaryCard from "../../../fragments/Admin/SummaryCard"
 import TrenDataAdmin from "../../../fragments/Admin/TrendDataAdmin"
-import { getBranches } from "../../../../services/branch.service"
+import { getBranches } from "../../../../services/Admin/branch.service"
 import {
     downloadSalesReport,
     getSalesReport,
     getProductsReport,
     getStocksReport,
-} from "../../../../services/laporan.service"
-import { getKasir } from "../../../../services/kasir.service"
-import { getProduct } from "../../../../services/product.service"
+} from "../../../../services/Admin/laporan.service"
+import { getKasir } from "../../../../services/Admin/kasir.service"
+import { getProduct } from "../../../../services/Admin/product.service"
 
 const getReportList = (response) => {
     if (Array.isArray(response)) return response

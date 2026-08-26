@@ -4,8 +4,8 @@ import MainAdmin from "../../../components/fragments/Admin/MainAdmin";
 import SidebarAdmin from "../../../components/fragments/Admin/SidebarAdmin"
 import PembayaranAdmin from "../../../components/Layouts/Admin/PembayaranAdmin"
 import {FiPlus, FiX} from "react-icons/fi";
-import { createPembayaran, updatePembayaran } from "../../../services/pembayaran.service";
-import { getBranches } from "../../../services/branch.service";
+import { createPembayaran, updatePembayaran } from "../../../services/Admin/pembayaran.service";
+import { getBranches } from "../../../services/Admin/branch.service";
 
 const initialForm = {
   name: "",

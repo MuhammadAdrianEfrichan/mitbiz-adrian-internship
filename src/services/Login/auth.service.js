@@ -1,4 +1,4 @@
-import { environment } from "../constant/environment";
+import { environment } from "../../constant/environment";
 
 export const register1 = async (formData) => {
     const res = await fetch(`${environment.API_URL}/auth/register/step1`, {

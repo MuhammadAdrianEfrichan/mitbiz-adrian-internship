@@ -5,7 +5,7 @@ import LeftCopy from "../../components/fragments/LeftCopy";
 import LoginCard from "../../components/fragments/LoginCard";
 import TagLine from "../../components/fragments/TagLine";
 import FormLogin from "../../components/fragments/FormLogin";
-import { changePassword } from "../../services/auth.service";
+import { changePassword } from "../../services/Login/auth.service";
 
 const LupaPasswordPage = () => {
     const navigate = useNavigate();

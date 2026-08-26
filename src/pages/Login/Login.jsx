@@ -6,7 +6,7 @@ import TagLine from '../../components/fragments/TagLine'
 import LupaPassword from '../../components/fragments/LupaPassword'
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import { login } from '../../services/auth.service'
+import { login } from '../../services/Login/auth.service'
 import UseAuth from '../../components/hooks/UseAuth'
 
 const Login = ()=>{
@@ -67,7 +67,7 @@ const Login = ()=>{
             const portalTarget = data.data?.portalTarget ?? data.portalTarget;
             if (portalTarget === "POS") {
                 navigate("/dasboard-kasir");
-            } else if(portalTarget === "SUPER-ADMIN"){
+            } else if(portalTarget === "SUPER_ADMIN"){
                 navigate("/dashboard-superadmin");
             }
             else {

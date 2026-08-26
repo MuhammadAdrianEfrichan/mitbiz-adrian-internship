@@ -4,9 +4,9 @@ import { FiClock, FiDollarSign } from 'react-icons/fi';
 import StatistikCard from '../../../components/fragments/User/StatistikCard';
 import { useNavigate } from 'react-router-dom';
 import { useContext, useEffect, useState } from 'react';
-import { getShiftActive, getShiftClose, getShiftOpen, getShiftToday } from '../../../services/shift..service';
+import { getShiftActive, getShiftClose, getShiftOpen, getShiftToday } from '../../../services/Admin/shift..service';
 import { useNotification } from '../../../components/ui/NotificationCenter';
-import { createTransactions, getMetodePembayaran, getTransaction } from '../../../services/transaction.service';
+import { createTransactions, getMetodePembayaran, getTransaction } from '../../../services/User/transaction.service';
 import { AuthContext } from '../../../context/AuthContext';
 import { FiEye, FiX } from 'react-icons/fi';
 

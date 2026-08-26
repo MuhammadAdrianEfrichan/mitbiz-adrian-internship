@@ -4,7 +4,7 @@ import PenjualanPerPembayaran from "../../../fragments/Admin/PenjualanPerPembaya
 import ProdukTerLaris from "../../../fragments/Admin/ProdukTerLaris"
 import SummaryCard from "../../../fragments/Admin/SummaryCard"
 import TrenDataAdmin from "../../../fragments/Admin/TrendDataAdmin"
-import { getDasboard } from "../../../../services/dasboard.service" // sesuaikan path/nama service-nya
+import { getDasboard } from "../../../../services/Admin/dasboard.service" // sesuaikan path/nama service-nya
 
 const HomeAdmin = () => {
     const [summary, setSummary] = useState(null)

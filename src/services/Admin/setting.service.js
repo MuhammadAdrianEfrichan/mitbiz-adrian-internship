@@ -1,4 +1,4 @@
-import { environment } from "../constant/environment";
+import { environment } from "../../constant/environment";
 
 export const getSetting = async () => {
     const res = await fetch(`${environment.API_URL}/admin/settings/business`, {

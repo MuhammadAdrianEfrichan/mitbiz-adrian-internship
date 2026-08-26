@@ -1,5 +1,5 @@
 import { FiEdit2, FiSearch, FiTrash2 } from "react-icons/fi";
-import { deleteCategory, getCategory } from "../../../../services/category.service";
+import { deleteCategory, getCategory } from "../../../../services/Admin/category.service";
 import { useEffect, useState } from "react";
 import { useNotification } from "../../../ui/NotificationCenter";
 

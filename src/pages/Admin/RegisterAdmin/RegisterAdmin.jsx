@@ -1,6 +1,6 @@
 import { useState } from "react"
 import RegisterAkun from "../../Register/RegisterAkun";
-import { register1, register2, register3 } from "../../../services/auth.service";
+import { register1, register2, register3 } from "../../../services/Login/auth.service";
 import RegisterOutlet from "../../Register/RegisterOutlet";
 import RegisterBisnis from "../../Register/RegisterBisnis";
 import RegisterDone from "../../Register/RegisterDone";

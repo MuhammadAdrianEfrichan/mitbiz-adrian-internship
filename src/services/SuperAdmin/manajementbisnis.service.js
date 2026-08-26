@@ -1,25 +1,33 @@
-import { environment } from "../constant/environment";
+import { environment } from "../../constant/environment";
 
 
-// READ — ambil semua cabang milik bisnis user yang login
-export const getCategory = async () => {
-    const res = await fetch(`${environment.API_URL}/categories`, {
+// READ — ambil semua cabang
+export const getBisnis = async () => {
+    const res = await fetch(`${environment.API_URL}/superadmin/outlets`, {
         method: "GET",
         credentials: "include",
     });
-    console.log("Status:", res.status); 
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Gagal mengambil data cabang");
+    return data;
+};
+export const getDetailBisnis = async (id) => {
+    const res = await fetch(`${environment.API_URL}/superadmin/outlets/${id}`, {
+        method: "GET",
+        credentials: "include",
+    });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Gagal mengambil data cabang");
     return data;
 };
 
 // CREATE — tambah cabang baru
-export const createCategory = async (categoryData) => {
-    const res = await fetch(`${environment.API_URL}/categories`, {
+export const createBisnis = async (bisnisData) => {
+    const res = await fetch(`${environment.API_URL}/superadmin/outlets`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(categoryData),
+        body: JSON.stringify(bisnisData),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Gagal menambah cabang");
@@ -27,12 +35,12 @@ export const createCategory = async (categoryData) => {
 };
 
 // UPDATE — edit cabang berdasarkan id
-export const updateCategory = async (id, categoryData) => {
-    const res = await fetch(`${environment.API_URL}/categories/${id}`, {
+export const updateBisnis = async (id, bisnisData) => {
+    const res = await fetch(`${environment.API_URL}/superadmin/outlets/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(categoryData),
+        body: JSON.stringify(bisnisData),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Gagal mengubah cabang");
@@ -40,8 +48,8 @@ export const updateCategory = async (id, categoryData) => {
 };
 
 // DELETE — hapus cabang berdasarkan id
-export const deleteCategory = async (id) => {
-    const res = await fetch(`${environment.API_URL}/categories/${id}`, {
+export const deleteBisnis = async (id) => {
+    const res = await fetch(`${environment.API_URL}/superadmin/outlets/${id}`, {
         method: "DELETE",
         credentials: "include",
     });

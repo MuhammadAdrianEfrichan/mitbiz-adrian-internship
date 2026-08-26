@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
 import { FiBox, FiSearch, FiAlertTriangle, FiPackage } from "react-icons/fi";
-import { getPenstok } from "../../../../services/penstok.service";
-import { getBranches } from "../../../../services/branch.service";
-import { getProduct } from "../../../../services/product.service";
+import { getPenstok } from "../../../../services/Admin/penstok.service";
+import { getBranches } from "../../../../services/Admin/branch.service";
+import { getProduct } from "../../../../services/Admin/product.service";
 import { formatTanggal } from "../../../../utils/fromatDate";
 import { useSearchParams } from "react-router-dom";
 
@@ -101,12 +101,23 @@ const stockRows = useMemo(() => {
 
       if (history.length === 0) return;
 
-      const stokTersedia = history.reduce((total, item) => {
-        if (item.type === "IN") return total + item.quantity;
-        if (item.type === "OUT") return total - item.quantity;
-        if (item.type === "CORRECTION") return item.quantity;
-        return total;
-      }, 0);
+      // urutkan dari yang terbaru untuk menentukan status unlimited saat ini
+      const sortedHistory = [...history].sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+      const latestEntry = sortedHistory[0];
+      const isUnlimited = latestEntry?.isUnlimited ?? false;
+
+      const stokTersedia = isUnlimited
+        ? null
+        : history.reduce((total, item) => {
+            if (item.isUnlimited) return total; // entri unlimited tidak dihitung numerik
+            const qty = item.quantity ?? 0;
+            if (item.type === "IN") return total + qty;
+            if (item.type === "OUT") return total - qty;
+            if (item.type === "CORRECTION") return qty;
+            return total;
+          }, 0);
 
       const lastUpdate = history.reduce(
         (latest, item) =>
@@ -115,10 +126,14 @@ const stockRows = useMemo(() => {
       );
 
       const minStok = product.minStock ?? 10;
-      const status =
-        stokTersedia === 0 ? "Habis" : stokTersedia <= minStok ? "Menipis" : "Normal";
+      const status = isUnlimited
+        ? "Tersedia"
+        : stokTersedia === 0
+        ? "Habis"
+        : stokTersedia <= minStok
+        ? "Menipis"
+        : "Normal";
 
-      // filter status (dropdown)
       if (selectedStatus && status !== selectedStatus) return;
 
       const row = {
@@ -127,12 +142,12 @@ const stockRows = useMemo(() => {
         kategori: product.category?.name ?? "-",
         cabang: outlet.name,
         stokTersedia,
+        isUnlimited,
         minStok,
         status,
         tanggal: lastUpdate,
       };
 
-      // filter search keseluruhan (nama produk, kategori, cabang, status, angka stok)
       if (keyword) {
         const searchable = [
           row.nama,
@@ -144,7 +159,6 @@ const stockRows = useMemo(() => {
         ]
           .join(" ")
           .toLowerCase();
-
         if (!searchable.includes(keyword)) return;
       }
 
@@ -155,7 +169,7 @@ const stockRows = useMemo(() => {
   return rows;
 }, [products, outlets, penStok, searchParams]);
 
-  const summaryCards = useMemo(
+ const summaryCards = useMemo(
     () => [
       { label: "Total Produk", value: products.length, icon: FiBox },
       {
@@ -164,17 +178,22 @@ const stockRows = useMemo(() => {
         icon: FiAlertTriangle,
       },
       {
+        label: "Stok Tersedia",
+        value: stockRows.filter((r) => r.status === "Tersedia").length,
+        icon: FiPackage,
+      },
+      {
         label: "Stok Habis",
         value: stockRows.filter((r) => r.status === "Habis").length,
-        icon: FiPackage,
+        icon: FiAlertTriangle,
       },
     ],
     [products, stockRows]
   );
-
   const statusBadgeClass = (status) => {
     if (status === "Habis") return "bg-red-100 text-red-700";
     if (status === "Menipis") return "bg-amber-100 text-amber-700";
+    if (status === "Tersedia") return "bg-green-100 text-green-700";
     return "bg-blue-100 text-blue-700";
   };
 
@@ -291,7 +310,13 @@ const stockRows = useMemo(() => {
                       <td className="px-4 py-3 font-medium text-slate-700">{row.nama}</td>
                       <td className="px-4 py-3">{row.kategori}</td>
                       <td className="px-4 py-3">{row.cabang}</td>
-                      <td className="px-4 py-3">{row.stokTersedia}</td>
+                      <td className="px-4 py-3">
+                      {row.isUnlimited ? (
+                        <span className="font-medium text-blue-600">Unlimited</span>
+                      ) : (
+                        row.stokTersedia
+                      )}
+                    </td>
                       <td className="px-4 py-3">{row.minStok}</td>
                       <td className="px-4 py-3">
                         <span

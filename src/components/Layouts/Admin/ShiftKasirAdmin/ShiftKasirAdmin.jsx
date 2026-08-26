@@ -6,9 +6,9 @@ import {
   getShiftToday,
   forceOpenShift,
   forceCloseShift,
-} from "../../../../services/shift..service";
-import { getBranches } from "../../../../services/branch.service";
-import { getTransaction } from "../../../../services/transaction.service";
+} from "../../../../services/Admin/shift..service";
+import { getBranches } from "../../../../services/Admin/branch.service";
+import { getTransaction } from "../../../../services/User/transaction.service";
 import { useNotification } from "../../../ui/NotificationCenter";
 
 const formatRupiah = (value) => `Rp ${Number(value ?? 0).toLocaleString("id-ID")}`;

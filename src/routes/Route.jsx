@@ -165,7 +165,7 @@ const routes =[
 {
     path: '/dashboard-superadmin',
     element: (
-        <ProtectedRoute allowedRoles={["SUPER-ADMIN"]}>
+        <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
             <Dashboard />
         </ProtectedRoute>
     ),
@@ -173,7 +173,7 @@ const routes =[
 {
     path: '/manajementbisnis-superadmin',
     element: (
-        <ProtectedRoute allowedRoles={["SUPER-ADMIN"]}>
+        <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
             <ManajementBisnis />
         </ProtectedRoute>
     ),
@@ -181,7 +181,7 @@ const routes =[
 {
     path: '/user-superadmin',
     element: (
-        <ProtectedRoute allowedRoles={["SUPER-ADMIN"]}>
+        <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
             <ManajementUser />
         </ProtectedRoute>
     ),
@@ -189,7 +189,7 @@ const routes =[
 {
     path: '/paket-langganan-super-admin',
     element: (
-        <ProtectedRoute allowedRoles={["SUPER-ADMIN"]}>
+        <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
             <PaketLangganan />
         </ProtectedRoute>
     ),
@@ -197,7 +197,7 @@ const routes =[
 {
     path: '/laporan-super-admin',
     element: (
-        <ProtectedRoute allowedRoles={["SUPER-ADMIN"]}>
+        <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
             <LaporanSuperAdmin />
         </ProtectedRoute>
     ),
@@ -205,7 +205,7 @@ const routes =[
 {
     path: '/pengaturan-super-admin',
     element: (
-        <ProtectedRoute allowedRoles={["SUPER-ADMIN"]}>
+        <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
             <PengaturanSuperAdmin />
         </ProtectedRoute>
     ),
