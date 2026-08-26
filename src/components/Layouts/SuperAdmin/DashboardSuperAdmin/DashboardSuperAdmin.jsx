@@ -1,89 +1,43 @@
 import { useEffect, useState } from "react";
-import { FiChevronDown, FiSearch, FiHome } from "react-icons/fi";
-import PenjualanPerCabangAdmin from "../../../fragments/Admin/PenjualanPerCabangAdmin";
+import { FiBriefcase, FiDollarSign, FiUsers } from "react-icons/fi";
 import PenjualanPerPembayaran from "../../../fragments/Admin/PenjualanPerPembayaran";
-import ProdukTerLaris from "../../../fragments/Admin/ProdukTerLaris";
-import SummaryCard from "../../../fragments/Admin/SummaryCard";
 import TrenDataAdmin from "../../../fragments/Admin/TrendDataAdmin";
 import { getDasboard } from "../../../../services/Admin/dasboard.service";
 
-const staticSummary = {
-    totalPenjualan: 24439540,
-    totalTransaksi: 333,
-    cabangAktif: 3,
-    cabangTotal: 3,
-    kasirAktif: 4,
-    kasirTotal: 4,
-    produkAktif: 8,
-    produkTotal: 8,
-};
+const formatRupiah = (value) => `Rp ${Number(value ?? 0).toLocaleString("id-ID")}`;
 
-const staticTrend = [
-    { date: "2026-02-01", amount: 2800000 },
-    { date: "2026-02-02", amount: 1600000 },
-    { date: "2026-02-03", amount: 4200000 },
-    { date: "2026-02-04", amount: 2200000 },
-    { date: "2026-02-05", amount: 3100000 },
-    { date: "2026-02-06", amount: 6200000 },
-    { date: "2026-02-07", amount: 3500000 },
-];
-
-const staticBranches = [
-    { name: "Jakarta Pusat", sales: 4800000 },
-    { name: "Jakarta Selatan", sales: 3900000 },
-    { name: "Tangerang", sales: 5200000 },
-    { name: "Padang", sales: 4700000 },
-];
-
-const staticPaymentMethods = [
-    { name: "Tunai", value: 8200000 },
-    { name: "QRIS", value: 6900000 },
-    { name: "Transfer", value: 5400000 },
-    { name: "Kartu", value: 3939540 },
-];
-
-const staticProducts = [
-    { name: "Nasi Goreng", quantitySold: 128, totalAmount: 5556845 },
-    { name: "Mie Goreng", quantitySold: 112, totalAmount: 5225757 },
-    { name: "Coklat Batang", quantitySold: 96, totalAmount: 3748582 },
-    { name: "Keripik Kentang", quantitySold: 88, totalAmount: 2346725 },
-    { name: "Buku Tulis", quantitySold: 74, totalAmount: 1902717 },
-];
-
-const staticBranchStatus = [
-    { name: "Cabang Jakarta Pusat", transactions: 110 },
-    { name: "Cabang Jakarta Selatan", transactions: 124 },
-    { name: "Cabang Tangerang", transactions: 122 },
-];
-
-const BranchStatus = () => (
-    <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <h3 className="mb-4 text-[1.05rem] font-semibold text-slate-700">Status Cabang</h3>
-        <div className="space-y-3">
-            {staticBranchStatus.map((branch) => (
-                <div key={branch.name} className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500">
-                        <FiHome size={15} />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-slate-700">{branch.name}</p>
-                        <p className="text-[11px] text-slate-400">{branch.transactions} transaksi</p>
-                    </div>
-                    <span className="rounded bg-blue-600 px-2 py-1 text-[11px] font-semibold text-white">Aktif</span>
-                </div>
-            ))}
+const SummaryCard = ({ label, value, detail, icon: Icon, featured = false }) => (
+    <article className={`rounded-xl border p-4 shadow-sm ${featured ? "border-blue-600 bg-blue-600 text-white" : "border-slate-200 bg-white text-slate-800"}`}>
+        <div className="mb-3 flex items-start justify-between gap-2">
+            <h2 className={`text-sm font-medium ${featured ? "text-blue-100" : "text-slate-600"}`}>{label}</h2>
+            <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${featured ? "bg-blue-500 text-white" : "border border-slate-200 bg-slate-50 text-slate-500"}`}><Icon size={15} /></span>
         </div>
+        <p className="text-2xl font-bold leading-none">{value}</p>
+        <p className={`mt-2 text-xs ${featured ? "text-blue-100" : "text-slate-400"}`}>{detail}</p>
+    </article>
+);
+
+const TopTenants = ({ tenants }) => (
+    <section className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-base font-semibold text-slate-700">Tenant Teratas</h2>
+            <span className="text-xs text-slate-400">Berdasarkan pendapatan</span>
+        </div>
+        {tenants.length === 0 ? <p className="py-10 text-center text-sm text-slate-500">Belum ada data tenant.</p> : (
+            <div className="overflow-x-auto">
+                <table className="w-full min-w-[34rem] text-left text-sm text-slate-600">
+                    <thead className="border-b border-slate-100 text-xs uppercase text-slate-400"><tr><th className="px-3 py-2 font-medium">Tenant</th><th className="px-3 py-2 font-medium">Transaksi</th><th className="px-3 py-2 text-right font-medium">Pendapatan</th></tr></thead>
+                    <tbody>{tenants.map((tenant, index) => <tr key={tenant.tenantId ?? tenant.tenantName ?? index} className="border-b border-slate-100 last:border-0"><td className="max-w-[15rem] truncate px-3 py-3 font-medium text-slate-700">{tenant.tenantName ?? "-"}</td><td className="px-3 py-3">{tenant.transactionCount ?? 0}</td><td className="px-3 py-3 text-right font-medium text-slate-700">{formatRupiah(tenant.totalAmount)}</td></tr>)}</tbody>
+                </table>
+            </div>
+        )}
     </section>
 );
 
 const DashboardSuperAdmin = () => {
-    const [dashboard, setDashboard] = useState({
-        summary: staticSummary,
-        trend: staticTrend,
-        perOutlet: staticBranches,
-        perPayment: staticPaymentMethods,
-        topProducts: staticProducts,
-    });
+    const [dashboard, setDashboard] = useState({ summary: {}, trend: [], topTenants: [], perPayment: [] });
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     useEffect(() => {
         let active = true;
@@ -94,15 +48,11 @@ const DashboardSuperAdmin = () => {
                 const data = response?.data?.data ?? response?.data ?? {};
                 if (!active) return;
 
-                setDashboard((current) => ({
-                    summary: data.summary ?? current.summary,
-                    trend: data.trend?.length ? data.trend : current.trend,
-                    perOutlet: data.perOutlet?.length ? data.perOutlet : current.perOutlet,
-                    perPayment: data.perPayment?.length ? data.perPayment : current.perPayment,
-                    topProducts: data.topProducts?.length ? data.topProducts : current.topProducts,
-                }));
-            } catch {
-                // Static dashboard data keeps the layout useful until the API is available.
+                setDashboard({ summary: data.summary ?? {}, trend: data.trend ?? [], topTenants: data.topTenants ?? [], perPayment: data.perPayment ?? [] });
+            } catch (requestError) {
+                if (active) setError(requestError.message || "Gagal mengambil data dashboard.");
+            } finally {
+                if (active) setLoading(false);
             }
         };
 
@@ -113,30 +63,20 @@ const DashboardSuperAdmin = () => {
     }, []);
 
     return (
-        <div className="space-y-4">
-            <div className="flex gap-3">
-                <label className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-400 shadow-sm">
-                    <FiSearch size={16} />
-                    <input
-                        type="search"
-                        placeholder="Cari informasi bisnis..."
-                        className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-slate-400"
-                    />
-                </label>
-                <button type="button" className="flex w-44 items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500 shadow-sm">
-                    Bisnis Cafe Kita
-                    <FiChevronDown size={15} />
-                </button>
-            </div>
-            <SummaryCard summary={dashboard.summary} />
-            <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.45fr_1fr]">
+        <div className="space-y-5">
+            {loading && <p className="text-sm text-slate-500">Memuat dashboard...</p>}
+            {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
+            <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <SummaryCard featured label="Total Pendapatan" value={formatRupiah(dashboard.summary.totalPendapatan)} detail={`${dashboard.summary.totalTransaksi ?? 0} total transaksi`} icon={FiDollarSign} />
+                <SummaryCard label="Total Transaksi" value={dashboard.summary.totalTransaksi ?? 0} detail="Seluruh tenant" icon={FiBriefcase} />
+                <SummaryCard label="Tenant Aktif" value={dashboard.summary.tenantAktif ?? 0} detail={`dari ${dashboard.summary.tenantTotal ?? 0} tenant`} icon={FiBriefcase} />
+                <SummaryCard label="User Aktif" value={dashboard.summary.userAktif ?? 0} detail="Pengguna terdaftar aktif" icon={FiUsers} />
+            </section>
+            <section className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-[1.45fr_1fr]">
                 <TrenDataAdmin data={dashboard.trend} />
-                <PenjualanPerCabangAdmin data={dashboard.perOutlet} />
+                <PenjualanPerPembayaran data={dashboard.perPayment} />
             </section>
-            <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.45fr_1fr]">
-                <ProdukTerLaris products={dashboard.topProducts} />
-                <BranchStatus />
-            </section>
+            <TopTenants tenants={dashboard.topTenants} />
         </div>
     );
 };

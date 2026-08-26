@@ -209,7 +209,7 @@ const ManajementBisnisSuperAdmin = () => {
 			)}
 
 			{!loading && !error && businesses.length > 0 && (
-				<section className="mt-6 grid max-w-320 gap-6 xl:grid-cols-3" aria-label="Daftar cabang">
+				<section className="mt-6 grid max-w-7xl gap-6 xl:grid-cols-3" aria-label="Daftar cabang">
 					{businesses.map((business) => (
 						<BranchCard
 							key={business.id}

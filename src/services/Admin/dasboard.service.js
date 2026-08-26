@@ -1,7 +1,8 @@
 import { environment } from "../../constant/environment";
 
-export const getDasboard = async () => {
-    const res = await fetch(`${environment.API_URL}/dashboard`, {
+export const getDasboard = async (tenantId = "") => {
+    const query = tenantId ? `?tenantId=${encodeURIComponent(tenantId)}` : "";
+    const res = await fetch(`${environment.API_URL}/dashboard${query}`, {
         method: "GET",
         credentials: "include",
     });
