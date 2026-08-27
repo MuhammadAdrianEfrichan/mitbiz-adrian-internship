@@ -1,172 +1,178 @@
-  import { FiArrowDown, FiArrowUp, FiSearch } from "react-icons/fi";
-  import { categoryPenStok, getPenstok, searchPenStok } from "../../../../services/Admin/penstok.service";
-  import { useEffect, useState } from "react";
-  import { formatTanggal } from "../../../../utils/fromatDate";
-  import { ADJUSTMENT_TYPE_CONFIG, DEFAULT_TYPE_CONFIG } from "../../../../utils/adjustmantType";
+import { FiArrowDown, FiArrowUp, FiSearch } from "react-icons/fi";
+import { categoryPenStok, getPenstok, searchPenStok } from "../../../../services/Admin/penstok.service";
+import { useEffect, useState } from "react";
+import { formatTanggal } from "../../../../utils/fromatDate";
+import { ADJUSTMENT_TYPE_CONFIG, DEFAULT_TYPE_CONFIG } from "../../../../utils/adjustmantType";
 import { useSearchParams } from "react-router-dom";
 
+const PenyesuaianStokAdmin = ({ refreshKey, onEdit, outlets = [], products = [] }) => {
+	const [product, setProduct] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState("");
+	const [searchParams, setSearchParams] = useSearchParams();
 
+	const fetchProduct = async () => {
+		setLoading(true);
+		try {
+			const data = await getPenstok();
+			const list = Array.isArray(data.data?.data)
+				? data.data.data
+				: Array.isArray(data.data)
+					? data.data
+					: [];
 
-  const PenyesuaianStokAdmin = ({refreshKey, onEdit, outlets=[], products=[]}) => {
+			setProduct(list);
+		} catch (err) {
+			setError(err.message);
+			setProduct([]);
+		} finally {
+			setLoading(false);
+		}
+	};
+	useEffect(() => {
+		fetchProduct();
+	}, [refreshKey]);
 
-    const [product, setProduct] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
-    const [ searchParams, setSearchParams] = useSearchParams();
+	useEffect(() => {
+		const fetchOrder = async () => {
+			setLoading(true);
+			try {
+				const keyword = searchParams.get("outletId");
+				const result = keyword ? await categoryPenStok(keyword) : await getPenstok();
+				console.log("hasil categoryProduct:", result);
+				setProduct(result.data?.data ?? []);
+			} catch (err) {
+				setError(err.message);
+			} finally {
+				setLoading(false);
+			}
+		};
+		fetchOrder();
+	}, [searchParams.get("outletId")]);
 
+	useEffect(() => {
+		const fetchOrder = async () => {
+			setLoading(true);
+			try {
+				const keyword = searchParams.get("search");
+				const result = keyword ? await searchPenStok(keyword) : await getPenstok();
+				setProduct(result.data?.data ?? []);
+			} catch (err) {
+				setError(err.message);
+			} finally {
+				setLoading(false);
+			}
+		};
+		fetchOrder();
+	}, [searchParams.get("search")]);
 
-      const fetchProduct = async () => {
-              setLoading(true);
-              try {
-                  const data = await getPenstok(); 
-                  const list = Array.isArray(data.data?.data)
-                              ? data.data.data
-                            : Array.isArray(data.data)
-                              ? data.data
-                              : [];
+	const handleSearch = (value) => {
+		setSearchParams(value ? { search: value } : {});
+	};
+	return (
+		<section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+			<div className="mb-4 flex items-center justify-between gap-3">
+				<h3 className="text-[1.05rem] font-semibold text-slate-700">Daftar Produk</h3>
+			</div>
 
-                setProduct(list);
-              } catch (err) {
-                  setError(err.message);
-                  setProduct([]); 
-              } finally {
-                  setLoading(false);
-              }
-          };
-          useEffect(() => {
-              fetchProduct();
-          }, [refreshKey]); 
+			<div className="mb-4 grid grid-cols-[1.5fr_1fr] gap-3">
+				<label className="relative block">
+					<span className="sr-only">Cari produk</span>
+					<span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
+						<FiSearch size={15} />
+					</span>
+					<input
+						type="search"
+						placeholder="Cari produk..."
+						className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
+						value={searchParams.get("search") || ""}
+						onChange={(e) => handleSearch(e.target.value)}
+					/>
+				</label>
 
-          useEffect(() => {
-            const fetchOrder = async () => {
-              setLoading(true);
-              try {
-                const keyword = searchParams.get('outletId');
-                const result =( keyword) ? await categoryPenStok(keyword) : await getPenstok();
-                console.log("hasil categoryProduct:", result);
-                setProduct(result.data?.data ?? []);
-              } catch (err) {
-                setError(err.message);
-              } finally {
-                setLoading(false);
-              }
-            };
-            fetchOrder();
-          }, [searchParams.get('outletId')]);
+				<select
+					className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-blue-500 focus:outline-none"
+					value={searchParams.get("outletId") || ""}
+					onChange={(e) => {
+						const value = e.target.value;
+						setSearchParams(value ? { outletId: value } : {});
+					}}
+				>
+					<option value="">Semua cabang</option>
+					{outlets.map((outlet) => (
+						<option key={outlet.id} value={outlet.id}>
+							{outlet.name}
+						</option>
+					))}
+				</select>
+			</div>
 
-          useEffect(() => {
-            const fetchOrder = async () => {
-              setLoading(true);
-              try {
-                const keyword = searchParams.get('search');
-                const result =( keyword) ? await searchPenStok(keyword) : await getPenstok();
-              setProduct(result.data?.data ?? []);
-              } catch (err) {
-                setError(err.message);
-              } finally {
-                setLoading(false);
-              }
-            };
-            fetchOrder();
-          }, [searchParams.get('search')]);
+			<div className="overflow-hidden rounded-xl border border-slate-200">
+				<div className="overflow-x-auto">
+					<table className="min-w-full border-collapse text-left text-sm text-slate-700">
+						<thead>
+							<tr className="bg-slate-100 text-sm font-semibold text-slate-700">
+								<th className="px-4 py-3">Tanggal</th>
+								<th className="px-4 py-3">Produk</th>
+								<th className="px-4 py-3">Cabang</th>
+								<th className="px-4 py-3">Tipe</th>
+								<th className="px-4 py-3">Jumlah</th>
+								<th className="px-4 py-3">Alasan</th>
+							</tr>
+						</thead>
 
-          const handleSearch = (value) => {
-          setSearchParams(value ? { search: value } : {});
-        };
-    return (
-      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <h3 className="text-[1.05rem] font-semibold text-slate-700">Daftar Produk</h3>
-        </div>
+						<tbody>
+							{loading ? (
+								<tr>
+									<td colSpan={6} className="p-4 text-center text-sm text-slate-500">
+										Memuat data...
+									</td>
+								</tr>
+							) : product.length === 0 ? (
+								<tr>
+									<td colSpan={6} className="p-4 text-center text-sm text-slate-500">
+										Belum ada data.
+									</td>
+								</tr>
+							) : (
+								product.map((item) => {
+									const typeConfig = ADJUSTMENT_TYPE_CONFIG[item.type] ?? DEFAULT_TYPE_CONFIG;
+									const Icon = typeConfig.icon;
+									const isUnlimited = item.isUnlimited ?? item.product?.isUnlimitedStock ?? false;
 
-        <div className="mb-4 grid grid-cols-[1.5fr_1fr] gap-3">
-          <label className="relative block">
-            <span className="sr-only">Cari produk</span>
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
-              <FiSearch size={15} />
-            </span>
-            <input
-              type="search"
-              placeholder="Cari produk..."
-              className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
-              value={searchParams.get('search') || ''}
-              onChange={(e) => handleSearch(e.target.value)}
-            />
-          </label>
+									return (
+										<tr key={item.id} className="border-t border-slate-200 bg-white">
+											<td className="px-4 py-3 text-slate-700">{formatTanggal(item.createdAt)}</td>
+											<td className="px-4 py-3 font-medium text-slate-700">{item.product.name}</td>
+											<td className="px-4 py-3">{item.outlet.name}</td>
+											<td className="px-4 py-3">
+												<span
+													className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm ${typeConfig.className}`}
+												>
+													<Icon size={12} />
+													{typeConfig.label}
+												</span>
+											</td>
+											<td className="px-4 py-3">
+                        {isUnlimited ? (
+                          <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-xs font-semibold text-[#1c86ef]">
+                            <span aria-hidden="true" className="text-sm leading-none">∞</span>
+                          </span>
+                        ) : (
+                          item.quantity
+                        )}
+                      </td>
+											<td className="px-4 py-3 text-slate-600">{item.notes}</td>
+										</tr>
+									);
+								})
+							)}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</section>
+	);
+};
 
-          <select className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-blue-500 focus:outline-none"  value= {searchParams.get("outletId") || ""}
-            onChange={(e) => {
-              const value = e.target.value;
-              setSearchParams(
-                value
-                ? { outletId: value }
-                : {}
-                );
-              }}>
-            <option value="">Semua cabang</option>
-            {outlets.map((outlet) => (
-              <option key={outlet.id} value={outlet.id}>{outlet.name}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="overflow-hidden rounded-xl border border-slate-200">
-          <div className="overflow-x-auto">
-            <table className="min-w-full border-collapse text-left text-sm text-slate-700">
-              <thead>
-                <tr className="bg-slate-100 text-sm font-semibold text-slate-700">
-                  <th className="px-4 py-3">Tanggal</th>
-                  <th className="px-4 py-3">Produk</th>
-                  <th className="px-4 py-3">Cabang</th>
-                  <th className="px-4 py-3">Tipe</th>
-                  <th className="px-4 py-3">Jumlah</th>
-                  <th className="px-4 py-3">Alasan</th>
-                </tr>
-              </thead>
-
-              <tbody>
-              {loading ? (
-    <tr>
-      <td colSpan={6} className="p-4 text-center text-sm text-slate-500">
-        Memuat data...
-      </td>
-    </tr>
-  ) : product.length === 0 ? (
-    <tr>
-      <td colSpan={6} className="p-4 text-center text-sm text-slate-500">
-        Belum ada data.
-      </td>
-    </tr>
-  ) : (
-                product.map((item) => {
-                const typeConfig = ADJUSTMENT_TYPE_CONFIG[item.type] ?? DEFAULT_TYPE_CONFIG;
-                const Icon = typeConfig.icon;
-
-                return (
-                  <tr key={item.id} className="border-t border-slate-200 bg-white">
-                    <td className="px-4 py-3 text-slate-700">{formatTanggal(item.createdAt)}</td>
-                    <td className="px-4 py-3 font-medium text-slate-700">{item.product.name}</td>
-                    <td className="px-4 py-3">{item.outlet.name}</td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm ${typeConfig.className}`}
-                      >
-                        <Icon size={12} />
-                        {typeConfig.label}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">{item.quantity}</td>
-                    <td className="px-4 py-3 text-slate-600">{item.notes}</td>
-                  </tr>
-                );
-              })
-            )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-    );
-  };
-
-  export default PenyesuaianStokAdmin;
+export default PenyesuaianStokAdmin;
