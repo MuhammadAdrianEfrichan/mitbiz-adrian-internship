@@ -113,7 +113,7 @@ const RiwayatAdmin = () => {
 
       <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="mb-4 flex items-center justify-between gap-3">
-          <div className="flex items-center justify-between gap-3"><h3 className="text-[1.05rem] font-semibold text-slate-700">Daftar Transaksi</h3><button type="button" onClick={exportCsv} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"><FiDownload /> Export CSV</button></div>
+          <div className="flex items-center w-full justify-between gap-3"><h3 className="text-[1.05rem] font-semibold text-slate-700">Daftar Transaksi</h3><button type="button" onClick={exportCsv} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"><FiDownload /> Export CSV</button></div>
         </div>
 
         <div className="mb-4 grid grid-cols-[1.5fr_1fr_1fr] gap-3">

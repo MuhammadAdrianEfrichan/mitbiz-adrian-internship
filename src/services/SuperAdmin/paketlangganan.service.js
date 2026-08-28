@@ -57,3 +57,38 @@ export const deleteLangganan = async (id) => {
     if (!res.ok) throw new Error(data.message || "Gagal menghapus Paket Langganan");
     return data;
 };
+
+// Tambahan di paketlangganan.service.js (di samping getLangganan, createLangganan, dst.)
+
+const buildQuery = (params = {}) => {
+	const query = new URLSearchParams();
+	Object.entries(params).forEach(([key, value]) => {
+		if (value !== undefined && value !== null && value !== "") {
+			query.set(key, value);
+		}
+	});
+	const queryString = query.toString();
+	return queryString ? `?${queryString}` : "";
+};
+
+// GET /superadmin/subscriptions?search=&page=&limit=  → tab "Pelanggan Aktif"
+export const getSubscriptions = async (params = {}) => {
+	const res = await fetch(`${environment.API_URL}/superadmin/subscriptions${buildQuery(params)}`, {
+		method: "GET",
+		credentials: "include",
+	});
+	const data = await res.json();
+	if (!res.ok) throw new Error(data.message || "Gagal mengambil daftar pelanggan aktif");
+	return data;
+};
+
+// GET /superadmin/subscriptions/per-cabang?search=  → tab "Per Cabang"
+export const getSubscriptionsPerCabang = async (params = {}) => {
+	const res = await fetch(`${environment.API_URL}/superadmin/subscriptions/per-cabang${buildQuery(params)}`, {
+		method: "GET",
+		credentials: "include",
+	});
+	const data = await res.json();
+	if (!res.ok) throw new Error(data.message || "Gagal mengambil data langganan per cabang");
+	return data;
+};
