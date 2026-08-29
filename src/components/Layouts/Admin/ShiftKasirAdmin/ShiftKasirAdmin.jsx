@@ -114,7 +114,6 @@ const ShiftKasirAdmin = () => {
     }
   };
 
-  // Setiap kali outlet yang dipilih berubah, ambil ulang semua data
   useEffect(() => {
     fetchAll(outletId);
   }, [outletId, outlets]);
@@ -160,9 +159,8 @@ const ShiftKasirAdmin = () => {
     <div className="space-y-5">
       {/* Dropdown pilih outlet */}
       <div className="flex items-center justify-between">
-        <div></div>
         <select
-          className="min-w-56 rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-700 focus:border-blue-500 focus:outline-none"
+          className="min-w-90 rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-700 focus:border-blue-500 focus:outline-none"
           value={outletId}
           onChange={(e) => setOutletId(e.target.value)}
         >

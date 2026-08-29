@@ -294,7 +294,7 @@ const DashboardSuperAdmin = () => {
 	const selectedBusinessName = businessOptions.find((b) => b.id === businessId)?.name ?? "Pilih Bisnis";
 
 	return (
-		<main className="min-w-0 flex-1 overflow-y-auto bg-[#f8fafc] px-5 py-5 sm:px-8">
+		<main className="min-w-0 flex-1 overflow-y-auto bg-white px-5 py-5 sm:px-8">
 
 			<div className="mt-5 grid gap-3 md:grid-cols-[1.5fr_1fr]">
 				<label className="flex h-11 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-400">

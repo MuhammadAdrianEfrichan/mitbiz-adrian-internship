@@ -7,7 +7,8 @@ import {
 	FiSearch,
 	FiTrash2,
 } from "react-icons/fi";
-import { getUsers, deleteUsers } from "../../../../services/SuperAdmin/manajementuser.service"; 
+import { getUsers, deleteUsers } from "../../../../services/SuperAdmin/manajementuser.service";
+import { getSubscriptions } from "../../../../services/SuperAdmin/paketlangganan.service";
 import UserFormModal from "../../../fragments/SuperAdmin/UserFormModal";
 
 const customers = [
@@ -40,6 +41,34 @@ const normalizeUser = (u) => ({
 	phone: u.phone,
 });
 
+const formatDate = (isoString) => {
+	if (!isoString) return "-";
+	return new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", year: "numeric" }).format(
+		new Date(isoString)
+	);
+};
+
+// Ambil array dari response yang bentuknya bisa { data: [...] } ATAU { data: { data: [...] } }
+const extractList = (res) => {
+	if (Array.isArray(res?.data)) return res.data;
+	if (Array.isArray(res?.data?.data)) return res.data.data;
+	return [];
+};
+
+const extractMeta = (res, list) => res?.meta ?? res?.data?.meta ?? { total: list.length, page: 1, limit: 10 };
+
+// Normalisasi 1 item dari GET /superadmin/subscriptions — dipakai ulang untuk tab "Daftar Pelanggan"
+const normalizeSubscriber = (item) => ({
+	businessId: item.businessId,
+	name: item.businessName ?? "-",
+	contact: item.ownerName ?? "-", // tidak ada field kontak asli di endpoint ini, fallback ke nama owner
+	branch: "-", // endpoint ini per-bisnis, bukan per-cabang, jadi belum ada datanya
+	plan: item.packageName ?? "-",
+	status: item.status,
+	expiredAt: item.expiredAt,
+	expiredDisplay: formatDate(item.expiredAt),
+});
+
 const SummaryCard = ({ label, value, detail }) => (
 	<article className="rounded-2xl border border-slate-200 bg-[#f8fafc] p-4 shadow-sm">
 		<div className="flex items-start justify-between">
@@ -65,12 +94,12 @@ const StatusBadge = ({ status }) => {
 	);
 };
 
-const ActionButtons = ({ customer = false, label, onEdit, onDelete }) => (
+const ActionButtons = ({ customer = false, label, onView, onEdit, onDelete }) => (
 	<div className="flex items-center justify-center gap-2">
 		<button
 			type="button"
 			aria-label={`${customer ? "Lihat" : "Edit"} ${label}`}
-			onClick={onEdit}
+			onClick={customer ? onView : onEdit}
 			className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
 		>
 			{customer ? <FiEye size={16} /> : <FiEdit2 size={16} />}
@@ -186,10 +215,10 @@ const ManajementUserSuperAdmin = () => {
 	};
 
 	return (
-		<main className="min-w-0 flex-1 overflow-y-auto bg-[#f8fafc] px-5 py-5 sm:px-8">
-			<header className="flex flex-wrap items-start justify-between gap-4">
+		<main className="min-w-0 flex-1 overflow-y-auto bg-white px-5 py-5 sm:px-8">
+			<header className="mb-5 flex flex-wrap items-start justify-between gap-4">
 				<div>
-					<h1 className="text-2xl font-bold text-slate-800">Manajemen User</h1>
+					<h1 className="text-[2.1rem] font-bold tracking-tight text-slate-800">Manajemen User</h1>
 					<p className="mt-1 text-sm text-slate-500">Kelola admin dan kasir di semua cabang</p>
 				</div>
 				<button
@@ -350,43 +379,202 @@ const UserTable = ({
 	</section>
 );
 
-const CustomerTable = () => (
-	<section className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
-		<FilterBar firstPlaceholder="Cari nama, email atau telepon..." secondLabel="Semua Cabang" thirdLabel="Aktif" />
-		<div className="overflow-x-auto">
-			<table className="w-full min-w-175 table-fixed text-left text-sm text-slate-600">
-				<thead className="bg-slate-100 text-slate-700">
-					<tr>
-						<th className="w-[16%] px-4 py-2.5 font-medium">Nama</th>
-						<th className="w-[27%] px-4 py-2.5 font-medium">Kontak</th>
-						<th className="w-[24%] px-4 py-2.5 font-medium">Cabang</th>
-						<th className="w-[16%] px-4 py-2.5 font-medium">Langganan</th>
-						<th className="w-[11%] px-4 py-2.5 font-medium">Status</th>
-						<th className="w-[6%] px-4 py-2.5 text-center font-medium">Aksi</th>
-					</tr>
-				</thead>
-				<tbody>
-					{customers.map((customer, index) => (
-						<tr key={`${customer.contact}-${index}`} className="border-b border-slate-100 last:border-0">
-							<td className="px-4 py-3">{customer.name}</td>
-							<td className="truncate px-4 py-3" title={customer.contact}>
-								{customer.contact}
-							</td>
-							<td className="px-4 py-3">{customer.branch}</td>
-							<td className="px-4 py-3">{customer.plan}</td>
-							<td className="px-4 py-3">
-								<StatusBadge status="ACTIVE" />
-							</td>
-							<td className="px-4 py-3">
-								<ActionButtons customer label={customer.name} />
-							</td>
-						</tr>
-					))}
-				</tbody>
-			</table>
+const CustomerDetailCard = ({ customer, onClose, onToggleStatus }) => {
+	if (!customer) return null;
+
+	const nextStatus = customer.status === "ACTIVE" ? "Nonaktifkan" : "Aktifkan";
+
+	return (
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/45 p-4">
+			<div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
+				<div className="flex items-start justify-between gap-4">
+					<div>
+						<p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-600">Detail Pelanggan</p>
+						<h3 className="mt-2 text-2xl font-bold text-slate-800">{customer.name}</h3>
+					</div>
+					<StatusBadge status={customer.status} />
+				</div>
+
+				<div className="mt-6 grid gap-4 sm:grid-cols-2">
+					<DetailInfo label="Bisnis" value={customer.name} />
+					<DetailInfo label="Pemilik / Kontak" value={customer.contact} />
+					<DetailInfo label="Paket Langganan" value={customer.plan} />
+					<DetailInfo label="Status Langganan" value={customer.status === "ACTIVE" ? "Aktif" : "Nonaktif"} />
+					<DetailInfo label="Berlaku Hingga" value={customer.expiredDisplay || "-"} />
+				</div>
+
+				<div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-slate-200 pt-4">
+					<button
+						type="button"
+						onClick={() => onToggleStatus(customer)}
+						className="rounded-xl bg-[#1c86ef] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#1779dc]"
+					>
+						{nextStatus}
+					</button>
+					<button
+						type="button"
+						onClick={onClose}
+						className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
+					>
+						Tutup
+					</button>
+				</div>
+			</div>
 		</div>
-	</section>
+	);
+};
+
+const DetailInfo = ({ label, value }) => (
+	<div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+		<p className="text-xs font-medium uppercase tracking-[0.12em] text-slate-400">{label}</p>
+		<p className="mt-2 text-sm font-medium text-slate-700">{value || "-"}</p>
+	</div>
 );
+
+const CustomerTable = () => {
+	const [subscribers, setSubscribers] = useState([]);
+	const [meta, setMeta] = useState({ total: 0, page: 1, limit: 10 });
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState(null);
+	const [search, setSearch] = useState("");
+	const [page, setPage] = useState(1);
+	const [selectedCustomer, setSelectedCustomer] = useState(null);
+
+	useEffect(() => {
+		setLoading(true);
+		setError(null);
+		getSubscriptions({ search, page, limit: 10 })
+			.then((res) => {
+				const list = extractList(res);
+				const nextSubscribers = list.map(normalizeSubscriber);
+				setSubscribers(nextSubscribers);
+				setMeta(extractMeta(res, list));
+			})
+			.catch((err) => setError(err.message || "Gagal mengambil daftar pelanggan"))
+			.finally(() => setLoading(false));
+	}, [search, page]);
+
+	const handleToggleStatus = (customer) => {
+		setSubscribers((prev) =>
+			prev.map((item) =>
+				item.businessId === customer.businessId
+					? { ...item, status: item.status === "ACTIVE" ? "INACTIVE" : "ACTIVE" }
+					: item
+			)
+		);
+		setSelectedCustomer((prev) =>
+			prev && prev.businessId === customer.businessId
+				? { ...prev, status: prev.status === "ACTIVE" ? "INACTIVE" : "ACTIVE" }
+				: prev
+		);
+	};
+
+	const totalPages = Math.max(1, Math.ceil((meta.total ?? 0) / (meta.limit ?? 10)));
+
+	return (
+		<>
+			<section className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+				<div className="mb-3 grid gap-2 md:grid-cols-[1.5fr_1fr_1fr]">
+					<label className="flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-400">
+						<FiSearch size={16} />
+						<input
+							className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-slate-400"
+							placeholder="Cari nama, email atau telepon..."
+							value={search}
+							onChange={(e) => {
+								setSearch(e.target.value);
+								setPage(1);
+							}}
+						/>
+					</label>
+				</div>
+
+				{loading && (
+					<div className="flex items-center justify-center gap-2 py-6 text-slate-400">
+						<FiLoader className="animate-spin" size={18} />
+						<span className="text-sm">Memuat daftar pelanggan...</span>
+					</div>
+				)}
+
+				{!loading && error && <div className="py-6 text-center text-sm text-red-500">{error}</div>}
+
+				{!loading && !error && (
+					<div className="overflow-x-auto">
+						<table className="w-full min-w-175 table-fixed text-left text-sm text-slate-600">
+							<thead className="bg-slate-100 text-slate-700">
+								<tr>
+									<th className="w-[16%] px-4 py-2.5 font-medium">Nama</th>
+									<th className="w-[27%] px-4 py-2.5 font-medium">Kontak</th>
+									<th className="w-[16%] px-4 py-2.5 font-medium">Langganan</th>
+									<th className="w-[11%] px-4 py-2.5 font-medium">Status</th>
+									<th className="w-[6%] px-4 py-2.5 text-center font-medium">Aksi</th>
+								</tr>
+							</thead>
+							<tbody>
+								{subscribers.length === 0 && (
+									<tr>
+										<td colSpan={6} className="px-4 py-8 text-center text-slate-400">
+											Tidak ada pelanggan yang cocok.
+										</td>
+									</tr>
+								)}
+								{subscribers.map((sub) => (
+									<tr key={sub.businessId} className="border-b border-slate-100 last:border-0">
+										<td className="px-4 py-3">{sub.name}</td>
+										<td className="truncate px-4 py-3" title={sub.contact}>
+											{sub.contact}
+										</td>
+										<td className="px-4 py-3">{sub.plan}</td>
+										<td className="px-4 py-3">
+											<StatusBadge status={sub.status} />
+										</td>
+										<td className="px-4 py-3">
+											<ActionButtons customer label={sub.name} onView={() => setSelectedCustomer(sub)} />
+										</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
+				)}
+
+				{!loading && !error && meta.total > meta.limit && (
+					<div className="mt-3 flex items-center justify-between px-1 text-sm text-slate-500">
+						<span>
+							Halaman {meta.page} dari {totalPages} ({meta.total} pelanggan)
+						</span>
+						<div className="flex items-center gap-2">
+							<button
+								type="button"
+								disabled={page <= 1}
+								onClick={() => setPage((p) => Math.max(1, p - 1))}
+								className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 disabled:opacity-40"
+							>
+								Sebelumnya
+							</button>
+							<button
+								type="button"
+								disabled={page >= totalPages}
+								onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+								className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 disabled:opacity-40"
+							>
+								Berikutnya
+							</button>
+						</div>
+					</div>
+				)}
+			</section>
+
+			{selectedCustomer && (
+				<CustomerDetailCard
+					customer={selectedCustomer}
+					onClose={() => setSelectedCustomer(null)}
+					onToggleStatus={handleToggleStatus}
+				/>
+			)}
+		</>
+	);
+};
 
 const FilterBar = ({
 	firstPlaceholder,

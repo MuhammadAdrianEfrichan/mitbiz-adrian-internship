@@ -158,7 +158,7 @@ const PengaturanSuperAdmin = () => {
 
 	if (loading) {
 		return (
-			<main className="min-w-0 flex-1 overflow-y-auto bg-[#f8fafc] px-5 py-5 sm:px-8">
+			<main className="min-w-0 flex-1 overflow-y-auto bg-white px-5 py-5 sm:px-8">
 				<div className="flex items-center justify-center gap-2 py-16 text-slate-400">
 					<FiLoader className="animate-spin" size={20} />
 					<span className="text-sm">Memuat pengaturan...</span>
@@ -168,9 +168,9 @@ const PengaturanSuperAdmin = () => {
 	}
 
 	return (
-		<main className="min-w-0 flex-1 overflow-y-auto bg-[#f8fafc] px-5 py-5 sm:px-8">
-			<header>
-				<h1 className="text-2xl font-bold text-slate-800">Pengaturan</h1>
+		<main className="min-w-0 flex-1 overflow-y-auto bg-white px-5 py-5 sm:px-8">
+			<header className="mb-5">
+				<h1 className="text-[2.1rem] font-bold tracking-tight text-slate-800">Pengaturan</h1>
 				<p className="mt-1 text-sm text-slate-500">Kelola pengaturan aplikasi untuk semua cabang</p>
 			</header>
 

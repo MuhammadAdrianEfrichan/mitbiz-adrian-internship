@@ -237,11 +237,11 @@ const LaporanSuperAdmin = () => {
 	}, [stocks]);
 
 	return (
-		<main className="min-w-0 flex-1 overflow-y-auto bg-[#f8fafc] px-5 py-5 sm:px-8">
-			<header className="flex flex-wrap items-start justify-between gap-4">
+		<main className="min-w-0 flex-1 overflow-y-auto bg-white px-5 py-5 sm:px-8">
+			<header className="mb-5 flex flex-wrap items-start justify-between gap-4">
 				<div>
-					<h1 className="text-2xl font-bold text-slate-800">Laporan Komprehensif</h1>
-					<p className="mt-1 text-base text-slate-500">Generate dan analisis laporan bisnis</p>
+					<h1 className="text-[2.1rem] font-bold tracking-tight text-slate-800">Laporan Komprehensif</h1>
+					<p className="mt-1 text-sm text-slate-500">Generate dan analisis laporan bisnis</p>
 				</div>
 				<button
 					type="button"

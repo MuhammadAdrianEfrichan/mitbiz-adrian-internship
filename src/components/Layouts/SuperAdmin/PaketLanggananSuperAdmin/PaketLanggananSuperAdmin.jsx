@@ -169,10 +169,66 @@ const StatusBadge = ({ status }) => {
 	);
 };
 
-const ViewButton = ({ label }) => (
-	<button type="button" aria-label={`Lihat ${label}`} className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600 hover:bg-slate-100">
+const ViewButton = ({ label, onClick }) => (
+	<button
+		type="button"
+		aria-label={`Lihat ${label}`}
+		onClick={onClick}
+		className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600 hover:bg-slate-100"
+	>
 		<FiEye size={16} />
 	</button>
+);
+
+const SubscriptionDetailModal = ({ subscription, onClose, onToggleStatus }) => {
+	if (!subscription) return null;
+
+	const nextStatus = subscription.status === "ACTIVE" ? "Nonaktifkan" : "Aktifkan";
+
+	return (
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/45 p-4">
+			<div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
+				<div className="flex items-start justify-between gap-4">
+					<div>
+						<p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-600">Detail Pelanggan Aktif</p>
+						<h3 className="mt-2 text-2xl font-bold text-slate-800">{subscription.businessName}</h3>
+					</div>
+					<StatusBadge status={subscription.status} />
+				</div>
+
+				<div className="mt-6 grid gap-4 sm:grid-cols-2">
+					<DetailInfo label="Owner" value={subscription.ownerName} />
+					<DetailInfo label="Paket" value={subscription.packageName} />
+					<DetailInfo label="Status Langganan" value={subscription.status === "ACTIVE" ? "Aktif" : subscription.status || "-"} />
+					<DetailInfo label="Berlaku Hingga" value={subscription.expiredDisplay || "-"} />
+				</div>
+
+				<div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-slate-200 pt-4">
+					<button
+						type="button"
+						onClick={() => onToggleStatus(subscription)}
+						className="rounded-xl bg-[#1c86ef] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#1779dc]"
+					>
+						{nextStatus}
+					</button>
+					<button
+						type="button"
+						onClick={onClose}
+						className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
+					>
+						Tutup
+					</button>
+				</div>
+			</div>
+		</div>
+	);
+};
+
+const DetailInfo = ({ label, value }) => (
+	<div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+		<p className="text-[10px] font-medium uppercase tracking-[0.14em] text-slate-400">{label}</p>
+		<p className="mt-2 text-sm font-medium text-slate-700">{value || "-"}</p>
+	</div>
 );
 
 const SubscribersTable = () => {
@@ -181,6 +237,7 @@ const SubscribersTable = () => {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [page, setPage] = useState(1);
+	const [selectedSubscription, setSelectedSubscription] = useState(null);
 
 	useEffect(() => {
 		setLoading(true);
@@ -188,92 +245,118 @@ const SubscribersTable = () => {
 		getSubscriptions({ page, limit: 10 })
 			.then((res) => {
 				const list = extractList(res);
-				setSubscriptions(list.map(normalizeSubscription));
+				const nextSubscriptions = list.map(normalizeSubscription);
+				setSubscriptions(nextSubscriptions);
 				setMeta(extractMeta(res, list));
 			})
 			.catch((err) => setError(err.message || "Gagal mengambil daftar pelanggan aktif"))
 			.finally(() => setLoading(false));
 	}, [page]);
 
+	const handleToggleStatus = (subscription) => {
+		setSubscriptions((prev) =>
+			prev.map((item) =>
+				item.businessId === subscription.businessId
+					? { ...item, status: item.status === "ACTIVE" ? "INACTIVE" : "ACTIVE" }
+					: item
+			)
+		);
+		setSelectedSubscription((prev) =>
+			prev && prev.businessId === subscription.businessId
+				? { ...prev, status: prev.status === "ACTIVE" ? "INACTIVE" : "ACTIVE" }
+				: prev
+		);
+	};
+
 	const totalPages = Math.max(1, Math.ceil((meta.total ?? 0) / (meta.limit ?? 10)));
 
 	return (
-		<section className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-			<h2 className="mb-3 text-base font-semibold text-slate-700">Pelanggan Berlangganan</h2>
+		<>
+			<section className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+				<h2 className="mb-3 text-base font-semibold text-slate-700">Pelanggan Berlangganan</h2>
 
-			{loading && (
-				<div className="flex items-center justify-center gap-2 py-6 text-slate-400">
-					<FiLoader className="animate-spin" size={18} />
-					<span className="text-sm">Memuat daftar pelanggan...</span>
-				</div>
-			)}
-
-			{!loading && error && <div className="py-6 text-center text-sm text-red-500">{error}</div>}
-
-			{!loading && !error && (
-				<div className="overflow-x-auto">
-					<table className="w-full min-w-175 table-fixed text-left text-sm text-slate-600">
-						<thead className="bg-slate-100 text-slate-700">
-							<tr>
-								<th className="w-[20%] px-3 py-2 font-medium">Bisnis</th>
-								<th className="w-[20%] px-3 py-2 font-medium">Owner</th>
-								<th className="w-[20%] px-3 py-2 font-medium">Paket</th>
-								<th className="w-[20%] px-3 py-2 font-medium">Status</th>
-								<th className="w-[15%] px-3 py-2 font-medium">Expired</th>
-								<th className="w-[5%] px-3 py-2 font-medium">Aksi</th>
-							</tr>
-						</thead>
-						<tbody>
-							{subscriptions.length === 0 && (
-								<tr>
-									<td colSpan={6} className="px-3 py-6 text-center text-slate-400">
-										Belum ada pelanggan aktif.
-									</td>
-								</tr>
-							)}
-							{subscriptions.map((sub) => (
-								<tr key={sub.businessId} className="border-b border-slate-100 last:border-0">
-									<td className="px-3 py-3 text-slate-700">{sub.businessName}</td>
-									<td className="px-3 py-3">{sub.ownerName}</td>
-									<td className="px-3 py-3">{sub.packageName}</td>
-									<td className="px-3 py-3">{sub.status === "ACTIVE" ? "Aktif" : sub.status || "-"}</td>
-									<td className="px-3 py-3">{sub.expiredDisplay}</td>
-									<td className="px-3 py-3">
-										<ViewButton label={sub.businessName} />
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-				</div>
-			)}
-
-			{!loading && !error && meta.total > meta.limit && (
-				<div className="mt-3 flex items-center justify-between px-1 text-sm text-slate-500">
-					<span>
-						Halaman {meta.page} dari {totalPages} ({meta.total} pelanggan)
-					</span>
-					<div className="flex items-center gap-2">
-						<button
-							type="button"
-							disabled={page <= 1}
-							onClick={() => setPage((p) => Math.max(1, p - 1))}
-							className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 disabled:opacity-40"
-						>
-							Sebelumnya
-						</button>
-						<button
-							type="button"
-							disabled={page >= totalPages}
-							onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-							className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 disabled:opacity-40"
-						>
-							Berikutnya
-						</button>
+				{loading && (
+					<div className="flex items-center justify-center gap-2 py-6 text-slate-400">
+						<FiLoader className="animate-spin" size={18} />
+						<span className="text-sm">Memuat daftar pelanggan...</span>
 					</div>
-				</div>
+				)}
+
+				{!loading && error && <div className="py-6 text-center text-sm text-red-500">{error}</div>}
+
+				{!loading && !error && (
+					<div className="overflow-x-auto">
+						<table className="w-full min-w-175 table-fixed text-left text-sm text-slate-600">
+							<thead className="bg-slate-100 text-slate-700">
+								<tr>
+									<th className="w-[20%] px-3 py-2 font-medium">Bisnis</th>
+									<th className="w-[20%] px-3 py-2 font-medium">Owner</th>
+									<th className="w-[20%] px-3 py-2 font-medium">Paket</th>
+									<th className="w-[20%] px-3 py-2 font-medium">Status</th>
+									<th className="w-[15%] px-3 py-2 font-medium">Expired</th>
+									<th className="w-[5%] px-3 py-2 font-medium">Aksi</th>
+								</tr>
+							</thead>
+							<tbody>
+								{subscriptions.length === 0 && (
+									<tr>
+										<td colSpan={6} className="px-3 py-6 text-center text-slate-400">
+											Belum ada pelanggan aktif.
+										</td>
+									</tr>
+								)}
+								{subscriptions.map((sub) => (
+									<tr key={sub.businessId} className="border-b border-slate-100 last:border-0">
+										<td className="px-3 py-3 text-slate-700">{sub.businessName}</td>
+										<td className="px-3 py-3">{sub.ownerName}</td>
+										<td className="px-3 py-3">{sub.packageName}</td>
+										<td className="px-3 py-3"><StatusBadge status={sub.status} /></td>
+										<td className="px-3 py-3">{sub.expiredDisplay}</td>
+										<td className="px-3 py-3">
+											<ViewButton label={sub.businessName} onClick={() => setSelectedSubscription(sub)} />
+										</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
+				)}
+
+				{!loading && !error && meta.total > meta.limit && (
+					<div className="mt-3 flex items-center justify-between px-1 text-sm text-slate-500">
+						<span>
+							Halaman {meta.page} dari {totalPages} ({meta.total} pelanggan)
+						</span>
+						<div className="flex items-center gap-2">
+							<button
+								type="button"
+								disabled={page <= 1}
+								onClick={() => setPage((p) => Math.max(1, p - 1))}
+								className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 disabled:opacity-40"
+							>
+								Sebelumnya
+							</button>
+							<button
+								type="button"
+								disabled={page >= totalPages}
+								onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+								className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 disabled:opacity-40"
+							>
+								Berikutnya
+							</button>
+						</div>
+					</div>
+				)}
+			</section>
+
+			{selectedSubscription && (
+				<SubscriptionDetailModal
+					subscription={selectedSubscription}
+					onClose={() => setSelectedSubscription(null)}
+					onToggleStatus={handleToggleStatus}
+				/>
 			)}
-		</section>
+		</>
 	);
 };
 
@@ -511,10 +594,10 @@ const PaketLanggananSuperAdmin = () => {
 	};
 
 	return (
-		<main className="min-w-0 flex-1 overflow-y-auto bg-[#f8fafc] px-5 py-5 sm:px-8">
-		<header className="flex flex-wrap items-start justify-between gap-4">
+		<main className="min-w-0 flex-1 overflow-y-auto bg-white px-5 py-5 sm:px-8">
+		<header className="mb-5 flex flex-wrap items-start justify-between gap-4">
 	<div>
-		<h1 className="text-2xl font-bold text-slate-800">Manajemen Langganan - Semua Cabang</h1>
+		<h1 className="text-[2.1rem] font-bold tracking-tight text-slate-800">Manajemen Langganan - Semua Cabang</h1>
 		<p className="mt-1 text-sm text-slate-500">Kelola paket langganan untuk semua cabang</p>
 	</div>
 	{activeTab === "plans" && (

@@ -178,11 +178,6 @@ const stockRows = useMemo(() => {
         icon: FiAlertTriangle,
       },
       {
-        label: "Stok Tersedia",
-        value: stockRows.filter((r) => r.status === "Tersedia").length,
-        icon: FiPackage,
-      },
-      {
         label: "Stok Habis",
         value: stockRows.filter((r) => r.status === "Habis").length,
         icon: FiAlertTriangle,
