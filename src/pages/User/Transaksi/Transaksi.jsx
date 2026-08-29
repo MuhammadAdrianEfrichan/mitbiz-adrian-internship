@@ -87,6 +87,7 @@ const Transaksi = () => {
     const [discountConfig, setDiscountConfig] = useState({ enabled: false, percentage: 0, minPurchase: 0 });
     const [lastTransaction, setLastTransaction] = useState(null);
 const [showQueueModal, setShowQueueModal] = useState(false);
+const [keyword, setKeyword] = useState("");
 
 
 
@@ -392,6 +393,17 @@ const handleOpenBill = () => {
 };
 
 
+const displayedProducts = useMemo(() => {
+    const q = keyword.trim().toLowerCase();
+    if (!q) return product;
+    return product.filter((p) => {
+        const name = (p.name ?? "").toLowerCase();
+        const sku = (p.sku ?? "").toLowerCase();
+        return name.includes(q) || sku.includes(q);
+    });
+}, [product, keyword]);
+
+
     return (
         <div className="min-h-screen bg-[#f5f6f8] text-[#111827]">
             <Navbar />
@@ -404,6 +416,8 @@ const handleOpenBill = () => {
                         </div>
                         <InputSearch
                             type="text"
+                            value={keyword}
+                            onChange={(e) => setKeyword(e.target.value)}
                             className="w-100 rounded-xl border border-slate-300 bg-gray-100 px-4 py-3.5 text-base text-slate-600 focus:border-[#0F74D7] focus:outline-none focus:ring-2 focus:ring-blue-100 placeholder:pl-5"
                             placeholder="Cari Produk atau SKU..."
                         />
@@ -445,25 +459,24 @@ const handleOpenBill = () => {
 
                     {/* Product grid */}
                     <div className="grid grid-cols-3 gap-6">
-                        {product.map((p) => (
-                            <ProductCard
-                                key={p.id}
-                                image={p.imageUrl}
-                                title={p.name}
-                                sku={p.sku}
-                                price={p.price}
-                                discount={p.discount}
-                                onClick={() => handleAddToCart(p)}
-                            />
-                            
-                        ))}
+                        {displayedProducts.map((p) => (
+                        <ProductCard
+                            key={p.id}
+                            image={p.imageUrl}
+                            title={p.name}
+                            sku={p.sku}
+                            price={p.price}
+                            discount={p.discount}
+                            onClick={() => handleAddToCart(p)}
+                        />
+                    ))}
                     </div>
                 </div>
 
                 {/* Sidebar / Detail Transaksi */}
-               <div className="w-[30%] border border-gray-400 mt-10 h-180 rounded-2xl fixed right-0 bg-white overflow-y-auto">
-    <div className="flex items-center justify-between py-5 px-10 border-b border-gray-300">
-        <div className="flex text-2xl gap-5 font-bold">
+            <div className="w-[30%] border border-gray-400 mt-10 h-180 rounded-2xl fixed right-0 bg-white overflow-y-auto">
+            <div className="flex items-center justify-between py-5 px-10 border-b border-gray-300">
+            <div className="flex text-2xl gap-5 font-bold">
             <BiDetail className="w-8 h-8" />
             <h3>Detail Transaksi ({cart.length})</h3>
         </div>
