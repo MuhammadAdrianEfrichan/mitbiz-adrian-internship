@@ -15,26 +15,40 @@ const formatRupiah = (value) =>
 		minimumFractionDigits: 0,
 	}).format(value || 0);
 
-const normalizeSalesSummary = (res) => {
-	const d = res?.data ?? res ?? {};
-	return {
-		totalRevenue: d.totalRevenue ?? d.grossRevenue ?? d.totalPendapatan ?? 0,
-		totalTransactions: d.totalTransactions ?? d.transactionCount ?? d.totalTransaksi ?? 0,
-		avgTransaction: d.averageTransaction ?? d.avgTransaction ?? d.rataRataTransaksi ?? 0,
-		totalDiscount: d.totalDiscount ?? d.totalDiskon ?? 0,
-	};
-};
-
+// Sebelumnya cuma baca field datar (quantitySold, revenue, dst) yang ternyata tidak ada.
+// Field asli dari /reports/products ada di dalam `_sum`.
 const normalizeProductsReport = (res) => {
 	const list = res?.data ?? [];
 	if (!Array.isArray(list)) return [];
 	return list.map((p, idx) => ({
-		id: p.id ?? p.productId ?? idx,
+		id: p.productSku ?? idx,
 		rank: idx + 1,
-		name: p.name ?? p.productName ?? p.product?.name ?? "-",
-		quantity: p.quantitySold ?? p.qty ?? p.totalQuantity ?? p.quantity ?? 0,
-		revenue: p.revenue ?? p.totalRevenue ?? p.totalPendapatan ?? 0,
+		name: p.productName ?? p.name ?? "-",
+		quantity: p._sum?.quantity ?? 0,
+		revenue: p._sum?.subtotal ?? 0,
 	}));
+};
+
+// /reports/sales ternyata mengembalikan ARRAY MENTAH transaksi (bukan objek ringkasan),
+// jadi ringkasannya dihitung sendiri di sini dari transaksi ber-status COMPLETED.
+const normalizeSalesSummary = (res) => {
+	const list = res?.data ?? [];
+	const transactions = Array.isArray(list) ? list.filter((t) => t.status === "COMPLETED") : [];
+
+	const totalRevenue = transactions.reduce((sum, t) => sum + Number(t.totalAmount ?? 0), 0);
+	const totalTransactions = transactions.length;
+	const avgTransaction = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
+
+	// Total diskon = diskon per-item (selisih price*qty vs subtotal item) + diskon global per transaksi
+	const totalDiscount = transactions.reduce((sum, t) => {
+		const itemDiscount = (t.items ?? []).reduce((s, item) => {
+			const gross = Number(item.price ?? 0) * Number(item.quantity ?? 0);
+			return s + (gross - Number(item.subtotal ?? gross));
+		}, 0);
+		return sum + itemDiscount + Number(t.globalDiscountAmount ?? 0);
+	}, 0);
+
+	return { totalRevenue, totalTransactions, avgTransaction, totalDiscount };
 };
 
 const stockStatus = (item) => {

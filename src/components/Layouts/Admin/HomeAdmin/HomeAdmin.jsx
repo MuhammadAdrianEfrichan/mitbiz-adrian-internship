@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FiCheck, FiLoader, FiSearch } from "react-icons/fi";
 import { getLangganan } from "../../../../services/SuperAdmin/paketlangganan.service"; // sesuaikan path
 import { subscribeToPackage } from "../../../../services/Admin/berlangganan.service"; // sesuaikan path — fungsi ini akan diisi begitu spek checkout ada
+import { environment } from "../../../../constant/environment";
 
 const formatRupiah = (value) =>
 	new Intl.NumberFormat("id-ID", {
@@ -75,8 +76,7 @@ const PlanCard = ({ plan, isPaying, onChoose, highlighted }) => (
 	</article>
 );
 
-// Tampil ketika tenant belum/tidak berlangganan (backend mengirim subscriptionRequired: true).
-// businessId dipakai untuk tahu tenant mana yang sedang checkout.
+
 const SubscriptionRequiredScreen = ({ businessId }) => {
 	const [plans, setPlans] = useState([]);
 	const [loading, setLoading] = useState(true);
@@ -103,6 +103,27 @@ const SubscriptionRequiredScreen = ({ businessId }) => {
 		return plans.filter((p) => p.name?.toLowerCase().includes(term));
 	}, [plans, search]);
 
+	const waitForSubscriptionActive = async (maxAttempts = 15, intervalMs = 2000) => {
+		for (let attempt = 0; attempt < maxAttempts; attempt++) {
+			await new Promise((resolve) => setTimeout(resolve, intervalMs));
+			try {
+				const res = await fetch(`${environment.API_URL}/subscriptions/my`, {
+					method: "GET",
+					credentials: "include",
+				});
+				const data = await res.json();
+				if (data?.data?.hasActiveSubscription === true) {
+					window.location.reload();
+					return;
+				}
+			} catch {
+				// Abaikan error sementara, lanjut polling
+			}
+		}
+		// Timeout: webhook mungkin delay — reload saja agar user tidak stuck
+		window.location.reload();
+	};
+
 	const handleChoose = async (plan) => {
 	setPayError(null);
 	setPayingPlanId(plan.id);
@@ -111,29 +132,28 @@ const SubscriptionRequiredScreen = ({ businessId }) => {
 		const { snapToken, redirectUrl } = res?.data ?? {};
 
 		if (snapToken && window.snap) {
-            
-			window.snap.pay(snapToken, {
-                
-
-		onSuccess: (result) => {
-        console.log("SNAP onSuccess:", result);
-        window.location.reload();
-    },
-    onPending: (result) => {
-        console.log("SNAP onPending:", result);
-        window.location.reload();
-    },
-				onError: () => {
-					setPayError("Pembayaran gagal diproses. Silakan coba lagi.");
-					setPayingPlanId(null);
-				},
-				onClose: () => {
-					// User menutup modal sebelum bayar — tidak dianggap error, cukup reset tombol.
-					setPayingPlanId(null);
-				},
-			});
-			return;
-		}
+		window.snap.pay(snapToken, {
+			onSuccess: (result) => {
+				console.log("SNAP onSuccess:", result);
+				// Tunggu webhook diproses dulu, baru reload
+				waitForSubscriptionActive();
+			},
+			onPending: (result) => {
+				console.log("SNAP onPending:", result);
+				// Untuk pending (transfer bank dll), langsung reload saja
+				window.location.reload();
+			},
+			onError: () => {
+				setPayError("Pembayaran gagal diproses. Silakan coba lagi.");
+				setPayingPlanId(null);
+			},
+			onClose: () => {
+				// User menutup modal sebelum bayar — tidak dianggap error, cukup reset tombol.
+				setPayingPlanId(null);
+			},
+		});
+		return;
+	}
 
 		// Fallback kalau snap.js belum termuat: redirect penuh ke halaman Midtrans.
 		if (redirectUrl) {

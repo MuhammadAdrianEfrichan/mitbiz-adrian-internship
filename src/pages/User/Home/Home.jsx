@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useContext, useEffect, useState } from 'react';
 import { getShiftActive, getShiftClose, getShiftOpen, getShiftToday } from '../../../services/Admin/shift..service';
 import { useNotification } from '../../../components/ui/NotificationCenter';
-import { createTransactions, getMetodePembayaran, getTransaction } from '../../../services/User/transaction.service';
+import { createTransactions, getMetodePembayaran, getTransaction, getTransactionDetail } from '../../../services/User/transaction.service';
 import { AuthContext } from '../../../context/AuthContext';
 import { FiEye, FiX } from 'react-icons/fi';
 
@@ -54,6 +54,7 @@ const Home = () => {
     const [selectedBill, setSelectedBill] = useState(null);
     const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(null);
     const [billLoading, setBillLoading] = useState(false);
+    const [detailLoadingId, setDetailLoadingId] = useState(null);
 
     const formattedDate = now.toLocaleDateString("id-ID", {
     weekday: "long",
@@ -190,6 +191,26 @@ const Home = () => {
             setActionLoading(false);
         }
     };
+
+    const handleSelectBill = async (bill) => {
+	// Bill lokal (Open Bill dibuat di sesi ini) sudah punya items lengkap sejak awal, tidak perlu fetch ulang.
+	if ((bill.items?.length ?? 0) > 0) {
+		setSelectedBill(bill);
+		return;
+	}
+
+	// Bill dari server (list API tidak menyertakan items) — ambil detailnya dulu.
+	setDetailLoadingId(bill.id);
+	try {
+		const res = await getTransactionDetail(bill.id);
+		const detail = res?.data ?? {};
+		setSelectedBill({ ...bill, items: detail.items ?? [] });
+	} catch (err) {
+		notification.error(err.message || 'Gagal mengambil detail tagihan.');
+	} finally {
+		setDetailLoadingId(null);
+	}
+};
 
     const handleMulaiShift = async () => {
         setActionLoading(true);
@@ -480,11 +501,23 @@ const getOrderTypeBadgeClass = (orderType) => {
                                         <p className="text-2xl font-bold">{formatRupiah(getBillTotal(bill))}</p>
                                     </div>
                                     <div className="mt-3 flex gap-2">
-                                        <button type="button" onClick={() => setSelectedBill(bill)} className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#cbd5e1] px-3 py-2 text-sm font-medium hover:bg-slate-50">
-                                            <FiEye /> Detail
-                                        </button>
-                                        <button type="button" onClick={() => setSelectedBill(bill)} className="flex-1 rounded-xl bg-[#0f74d7] px-3 py-2 text-sm font-medium text-white hover:bg-[#0d68c5]">Tagih Sekarang</button>
-                                    </div>
+	<button
+		type="button"
+		onClick={() => handleSelectBill(bill)}
+		disabled={detailLoadingId === bill.id}
+		className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#cbd5e1] px-3 py-2 text-sm font-medium hover:bg-slate-50 disabled:opacity-50"
+	>
+		<FiEye /> {detailLoadingId === bill.id ? 'Memuat...' : 'Detail'}
+	</button>
+	<button
+		type="button"
+		onClick={() => handleSelectBill(bill)}
+		disabled={detailLoadingId === bill.id}
+		className="flex-1 rounded-xl bg-[#0f74d7] px-3 py-2 text-sm font-medium text-white hover:bg-[#0d68c5] disabled:opacity-50"
+	>
+		{detailLoadingId === bill.id ? 'Memuat...' : 'Tagih Sekarang'}
+	</button>
+</div>
                                 </article>
                             ))}
                         </div>

@@ -50,3 +50,13 @@ export const getMetodePembayaran= async (id) => {
     if (!res.ok) throw new Error(data.message || "Gagal mengambil data Pembayaran");
     return data;
 };
+
+export const getTransactionDetail = async (id) => {
+	const res = await fetch(`${environment.API_URL}/transactions/${id}`, {
+		method: "GET",
+		credentials: "include",
+	});
+	const data = await res.json();
+	if (!res.ok) throw new Error(data.message || "Gagal mengambil detail transaksi");
+	return data;
+};

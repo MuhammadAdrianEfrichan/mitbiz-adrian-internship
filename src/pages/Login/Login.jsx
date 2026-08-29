@@ -96,7 +96,7 @@ const Login = ()=>{
                     onFieldChange={handleChange}
                     submitLabel={loading ? "Memproses..." : "Masuk"}
                 >
-                    <LupaPassword />
+                        
 
                     <Link to='/register-admin' className='text-xl text-blue-600 flex justify-end'>Register</Link>
 

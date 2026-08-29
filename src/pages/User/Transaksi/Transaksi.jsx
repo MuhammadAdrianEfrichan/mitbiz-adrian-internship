@@ -328,42 +328,67 @@ const total = useMemo(() => taxableAmount + taxAmount, [taxableAmount, taxAmount
 };
 
 const handleOpenBill = () => {
-    if (cart.length === 0) {
-        notification.error("Keranjang kosong, tambahkan produk terlebih dahulu.");
-        return;
-    }
-    if (!customerName.trim() || !tableNumber.trim()) {
-        notification.error("Nama pelanggan dan nomor meja wajib diisi untuk Open Bill.");
-        return;
-    }
+	if (cart.length === 0) {
+		notification.error("Keranjang kosong, tambahkan produk terlebih dahulu.");
+		return;
+	}
+	if (!customerName.trim() || !tableNumber.trim()) {
+		notification.error("Nama pelanggan dan nomor meja wajib diisi untuk Open Bill.");
+		return;
+	}
 
+	setSelectedPaymentMethodId(null);
+	setSubmitting(true);
+	const payload = buildTransactionPayload("OPEN");
+	createTransactions(payload)
+		.then((response) => {
+			const responseData = response.data?.data ?? response.data ?? {};
+			const billId = responseData.id ?? responseData.transaction?.id ?? `local-${Date.now()}`;
+			const queueNumber = responseData.queueNumber ?? null;
 
-    setSelectedPaymentMethodId(null);
-    setSubmitting(true);
-    const payload = buildTransactionPayload("OPEN");
-    createTransactions(payload)
-        .then((response) => {
-            const bill = {
-                ...payload,
-                id: response.data?.id ?? response.data?.transaction?.id ?? `local-${Date.now()}`,
-                invoice: response.data?.invoice ?? response.data?.transaction?.invoice,
-                total,
-                subTotal,
-                totalDiscount,
-                taxAmount,
-                createdAt: new Date().toISOString(),
-                items: cart.map((item) => ({
-                    ...item,
-                    productId: item.id,
-                })),
-            };
-            const existingBills = JSON.parse(localStorage.getItem(OPEN_BILLS_STORAGE_KEY) || "[]");
-            localStorage.setItem(OPEN_BILLS_STORAGE_KEY, JSON.stringify([...existingBills, bill]));
-            clearTransaction();
-            notification.success("Open Bill berhasil disimpan.");
-        })
-        .catch((err) => notification.error(err.message || "Open Bill gagal disimpan."))
-        .finally(() => setSubmitting(false));
+			const bill = {
+				...payload,
+				id: billId,
+				invoice: responseData.invoice ?? responseData.transaction?.invoice,
+				total,
+				subTotal,
+				totalDiscount,
+				taxAmount,
+				createdAt: new Date().toISOString(),
+				items: cart.map((item) => ({
+					...item,
+					productId: item.id,
+				})),
+			};
+			const existingBills = JSON.parse(localStorage.getItem(OPEN_BILLS_STORAGE_KEY) || "[]");
+			localStorage.setItem(OPEN_BILLS_STORAGE_KEY, JSON.stringify([...existingBills, bill]));
+
+			// Open Bill tetap masuk ke Antrian, terpisah dari status pembayarannya.
+			// Antrian ini baru hilang saat kasir menekan "Selesai Dilayani" di halaman Home,
+			// bukan saat tagihan dibayar lewat Table Management — sama seperti pelanggan yang bayar langsung.
+			const queueEntry = {
+				id: billId,
+				queueNumber,
+				invoice: responseData.invoice ?? null,
+				customerName: customerName.trim(),
+				tableNumber: tableNumber.trim(),
+				orderType,
+				total,
+				items: cart.map((item) => ({
+					name: item.name,
+					quantity: item.quantity,
+					productId: item.id,
+				})),
+				createdAt: new Date().toISOString(),
+			};
+			const existingQueue = JSON.parse(localStorage.getItem(QUEUE_STORAGE_KEY) || "[]");
+			localStorage.setItem(QUEUE_STORAGE_KEY, JSON.stringify([...existingQueue, queueEntry]));
+
+			clearTransaction();
+			notification.success("Open Bill berhasil disimpan.");
+		})
+		.catch((err) => notification.error(err.message || "Open Bill gagal disimpan."))
+		.finally(() => setSubmitting(false));
 };
 
 
