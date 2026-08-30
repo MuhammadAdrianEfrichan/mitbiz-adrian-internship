@@ -96,10 +96,6 @@ const Login = ()=>{
                     onFieldChange={handleChange}
                     submitLabel={loading ? "Memproses..." : "Masuk"}
                 >
-                        
-
-                    <Link to='/register-admin' className='text-xl text-blue-600 flex justify-end'>Register</Link>
-
                     {errors.identifier && <p className="text-red-500 text-xs">{errors.email}</p>}
                     {errors.password && <p className="text-red-500 text-xs">{errors.password}</p>}
                 </FormLogin>

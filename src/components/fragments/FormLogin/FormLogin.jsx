@@ -58,18 +58,17 @@ const FormLogin = ({
                 </div>
             ))}
 
-            {children}
+
 
             <ButtonLogin type="submit">{submitLabel}</ButtonLogin>
 
-            {showFooterText && (
-                <p className="text-center text-sm text-slate-500">
-                    {footerText || 'Butuh bantuan?'}{' '}
-                    <a href="#" className="text-[#0F74D7] hover:underline">
-                        {variant === 'login' ? 'Hubungi admin bisnis Anda.' : 'Hubungi admin bisnis Anda.'}
-                    </a>
-                </p>
+            {variant === 'login' && (
+                <div className="flex justify-center items-center gap-1 text-base">
+                    <span className="text-slate-500">Belum punya akun?</span>
+                    <a href="/register-admin" className="text-blue-600 hover:underline font-medium">Register</a>
+                </div>
             )}
+
         </form>
     );
 };

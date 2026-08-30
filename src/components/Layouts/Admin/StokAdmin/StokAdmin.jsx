@@ -1,13 +1,13 @@
 import { useEffect, useState, useMemo } from "react";
 import { FiBox, FiSearch, FiAlertTriangle, FiPackage } from "react-icons/fi";
-import { getPenstok } from "../../../../services/Admin/penstok.service";
+import { getStocks } from "../../../../services/Admin/stock.service";
 import { getBranches } from "../../../../services/Admin/branch.service";
 import { getProduct } from "../../../../services/Admin/product.service";
 import { formatTanggal } from "../../../../utils/fromatDate";
 import { useSearchParams } from "react-router-dom";
 
 const StokAdmin = () => {
-  const [penStok, setPenStok] = useState([]);
+  const [stocks, setStocks] = useState([]);
   const [outlets, setOutlets] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,10 +17,10 @@ const StokAdmin = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [branchRes, productRes, penStokRes] = await Promise.all([
+      const [branchRes, productRes, stockRes] = await Promise.all([
         getBranches(),
         getProduct(),
-        getPenstok(),
+        getStocks(),
       ]);
 
       const branchList = Array.isArray(branchRes.data?.data)
@@ -35,21 +35,21 @@ const StokAdmin = () => {
         ? productRes.data
         : [];
 
-      const penStokList = Array.isArray(penStokRes.data?.data)
-        ? penStokRes.data.data
-        : Array.isArray(penStokRes.data)
-        ? penStokRes.data
+      const stockList = Array.isArray(stockRes.data?.data)
+        ? stockRes.data.data
+        : Array.isArray(stockRes.data)
+        ? stockRes.data
         : [];
 
       setOutlets(branchList);
       setProducts(productList);
-      setPenStok(penStokList);
+      setStocks(stockList);
     } catch (err) {
       console.error("Gagal mengambil data:", err);
       setError(err.message);
       setOutlets([]);
       setProducts([]);
-      setPenStok([]);
+      setStocks([]);
     } finally {
       setLoading(false);
     }
@@ -59,8 +59,6 @@ const StokAdmin = () => {
     fetchData();
   }, []);
 
-  // handleSearch & updateSearchParam ada di scope komponen (bukan di dalam useMemo)
-  // supaya bisa dipakai dari JSX.
   const updateSearchParam = (key, value) => {
     const next = new URLSearchParams(searchParams);
     if (value) next.set(key, value);
@@ -70,7 +68,6 @@ const StokAdmin = () => {
 
   const handleSearch = (value) => updateSearchParam("search", value);
 
-  // Ambil daftar kategori unik dari produk (untuk dropdown "Semua kategori")
   const categories = useMemo(() => {
     const unique = new Map();
     products.forEach((product) => {
@@ -81,95 +78,76 @@ const StokAdmin = () => {
     return Array.from(unique, ([id, name]) => ({ id, name }));
   }, [products]);
 
-const stockRows = useMemo(() => {
-  const rows = [];
+  const stockRows = useMemo(() => {
+    const rows = [];
 
-  const selectedOutletId = searchParams.get("outletId") || "";
-  const selectedCategoryId = searchParams.get("categoryId") || "";
-  const selectedStatus = searchParams.get("status") || "";
-  const keyword = (searchParams.get("search") || "").trim().toLowerCase();
+    const selectedOutletId = searchParams.get("outletId") || "";
+    const selectedCategoryId = searchParams.get("categoryId") || "";
+    const selectedStatus = searchParams.get("status") || "";
+    const keyword = (searchParams.get("search") || "").trim().toLowerCase();
 
-  products.forEach((product) => {
-    if (selectedCategoryId && product.category?.id !== selectedCategoryId) return;
+    products.forEach((product) => {
+      if (selectedCategoryId && product.category?.id !== selectedCategoryId) return;
 
-    outlets.forEach((outlet) => {
-      if (selectedOutletId && outlet.id !== selectedOutletId) return;
+      outlets.forEach((outlet) => {
+        if (selectedOutletId && outlet.id !== selectedOutletId) return;
 
-      const history = penStok.filter(
-        (item) => item.productId === product.id && item.outletId === outlet.id
-      );
+        // ambil record Stock aktual untuk kombinasi produk + cabang ini
+        const stockRecord = stocks.find(
+          (item) => item.productId === product.id && item.outletId === outlet.id
+        );
 
-      if (history.length === 0) return;
+        if (!stockRecord) return;
 
-      // urutkan dari yang terbaru untuk menentukan status unlimited saat ini
-      const sortedHistory = [...history].sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-      );
-      const latestEntry = sortedHistory[0];
-      const isUnlimited = latestEntry?.isUnlimited ?? false;
+        const isUnlimited = stockRecord.isUnlimited ?? false;
+        const stokTersedia = isUnlimited ? null : stockRecord.quantity ?? 0;
+        const lastUpdate = stockRecord.updatedAt ?? stockRecord.createdAt;
 
-      const stokTersedia = isUnlimited
-        ? null
-        : history.reduce((total, item) => {
-            if (item.isUnlimited) return total; // entri unlimited tidak dihitung numerik
-            const qty = item.quantity ?? 0;
-            if (item.type === "IN") return total + qty;
-            if (item.type === "OUT") return total - qty;
-            if (item.type === "CORRECTION") return qty;
-            return total;
-          }, 0);
+        const minStok = product.minStock ?? 10;
+        const status = isUnlimited
+          ? "Tersedia"
+          : stokTersedia === 0
+          ? "Habis"
+          : stokTersedia <= minStok
+          ? "Menipis"
+          : "Normal";
 
-      const lastUpdate = history.reduce(
-        (latest, item) =>
-          new Date(item.createdAt) > new Date(latest) ? item.createdAt : latest,
-        history[0].createdAt
-      );
+        if (selectedStatus && status !== selectedStatus) return;
 
-      const minStok = product.minStock ?? 10;
-      const status = isUnlimited
-        ? "Tersedia"
-        : stokTersedia === 0
-        ? "Habis"
-        : stokTersedia <= minStok
-        ? "Menipis"
-        : "Normal";
+        const row = {
+          id: `${product.id}-${outlet.id}`,
+          nama: product.name,
+          kategori: product.category?.name ?? "-",
+          cabang: outlet.name,
+          stokTersedia,
+          isUnlimited,
+          minStok,
+          status,
+          tanggal: lastUpdate,
+        };
 
-      if (selectedStatus && status !== selectedStatus) return;
+        if (keyword) {
+          const searchable = [
+            row.nama,
+            row.kategori,
+            row.cabang,
+            row.status,
+            String(row.stokTersedia),
+            String(row.minStok),
+          ]
+            .join(" ")
+            .toLowerCase();
+          if (!searchable.includes(keyword)) return;
+        }
 
-      const row = {
-        id: `${product.id}-${outlet.id}`,
-        nama: product.name,
-        kategori: product.category?.name ?? "-",
-        cabang: outlet.name,
-        stokTersedia,
-        isUnlimited,
-        minStok,
-        status,
-        tanggal: lastUpdate,
-      };
-
-      if (keyword) {
-        const searchable = [
-          row.nama,
-          row.kategori,
-          row.cabang,
-          row.status,
-          String(row.stokTersedia),
-          String(row.minStok),
-        ]
-          .join(" ")
-          .toLowerCase();
-        if (!searchable.includes(keyword)) return;
-      }
-
-      rows.push(row);
+        rows.push(row);
+      });
     });
-  });
 
-  return rows;
-}, [products, outlets, penStok, searchParams]);
+    return rows;
+  }, [products, outlets, stocks, searchParams]);
 
- const summaryCards = useMemo(
+  const summaryCards = useMemo(
     () => [
       { label: "Total Produk", value: products.length, icon: FiBox },
       {
@@ -185,6 +163,7 @@ const stockRows = useMemo(() => {
     ],
     [products, stockRows]
   );
+
   const statusBadgeClass = (status) => {
     if (status === "Habis") return "bg-red-100 text-red-700";
     if (status === "Menipis") return "bg-amber-100 text-amber-700";
