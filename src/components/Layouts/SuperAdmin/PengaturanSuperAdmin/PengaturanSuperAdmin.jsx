@@ -72,7 +72,6 @@ const SelectField = ({ label, value, onChange, options }) => (
 const emptyForm = {
 	appName: "",
 	defaultLanguage: "id",
-	logoUrl: "",
 	timezone: "Asia/Jakarta",
 	currency: "IDR",
 	dateFormat: "DD/MM/YYYY",
@@ -97,7 +96,6 @@ const PengaturanSuperAdmin = () => {
 				const normalized = {
 					appName: data.appName ?? "",
 					defaultLanguage: matchOption(LANGUAGE_OPTIONS, data.defaultLanguage),
-					logoUrl: data.logoUrl ?? "",
 					timezone: matchOption(TIMEZONE_OPTIONS, data.timezone),
 					currency: matchOption(CURRENCY_OPTIONS, data.currency),
 					dateFormat: matchOption(DATE_FORMAT_OPTIONS, data.dateFormat),
@@ -118,22 +116,6 @@ const PengaturanSuperAdmin = () => {
 		setForm((prev) => ({ ...prev, [field]: value }));
 	};
 
-	const handleLogoChange = async (e) => {
-		const file = e.target.files?.[0];
-		if (!file) return;
-
-		setUploading(true);
-		setError(null);
-		try {
-			const uploadedUrl = await uploadLogo(file);
-			setForm((prev) => ({ ...prev, logoUrl: uploadedUrl }));
-		} catch (err) {
-			setError(err.message || "Gagal mengunggah logo");
-		} finally {
-			setUploading(false);
-			e.target.value = ""; // reset input supaya bisa pilih file sama lagi kalau perlu
-		}
-	};
 
 	const handleReset = () => {
 		setForm(initialForm);
@@ -185,20 +167,6 @@ const PengaturanSuperAdmin = () => {
 						onChange={handleChange("defaultLanguage")}
 						options={LANGUAGE_OPTIONS}
 					/>
-
-					<div>
-						<FieldLabel>Logo Sistem</FieldLabel>
-						<label className="flex h-11 w-full cursor-pointer items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-500">
-							<span className="flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2.5 py-1 text-slate-600">
-								{uploading ? <FiLoader className="animate-spin" size={14} /> : <FiUpload size={14} />}
-								{uploading ? "Mengunggah..." : "Telusuri File"}
-							</span>
-							<span className="truncate">
-								{form.logoUrl ? form.logoUrl : "Max 10MB, PNG, JPEG"}
-							</span>
-							<input type="file" accept="image/png,image/jpeg" className="hidden" onChange={handleLogoChange} disabled={uploading} />
-						</label>
-					</div>
 					<SelectField
 						label="Zona Waktu"
 						value={form.timezone}
