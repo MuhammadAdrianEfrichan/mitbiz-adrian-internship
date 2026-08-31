@@ -1,0 +1,23 @@
+{
+	"settings": {
+		"title": "Pengaturan",
+		"subtitle": "Kelola pengaturan aplikasi untuk semua cabang",
+		"systemInfo": "Informasi Sistem",
+		"appName": "Nama Aplikasi",
+		"defaultLanguage": "Bahasa Default",
+		"timezone": "Zona Waktu",
+		"currency": "Mata Uang Default",
+		"dateFormat": "Format Tanggal",
+		"reset": "Reset",
+		"save": "Simpan Pengaturan",
+		"saving": "Menyimpan...",
+		"loading": "Memuat pengaturan...",
+		"saveSuccess": "Pengaturan berhasil disimpan.",
+		"loadError": "Gagal mengambil pengaturan sistem",
+		"saveError": "Gagal menyimpan pengaturan sistem"
+	},
+	"dashboard": {
+		"title": "Dashboard",
+		"subtitle": "Overview dan statistik bisnis"
+	}
+}

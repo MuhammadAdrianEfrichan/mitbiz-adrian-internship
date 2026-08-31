@@ -1,0 +1,23 @@
+{
+	"settings": {
+		"title": "Settings",
+		"subtitle": "Manage application settings for all branches",
+		"systemInfo": "System Information",
+		"appName": "App Name",
+		"defaultLanguage": "Default Language",
+		"timezone": "Timezone",
+		"currency": "Default Currency",
+		"dateFormat": "Date Format",
+		"reset": "Reset",
+		"save": "Save Settings",
+		"saving": "Saving...",
+		"loading": "Loading settings...",
+		"saveSuccess": "Settings saved successfully.",
+		"loadError": "Failed to load system settings",
+		"saveError": "Failed to save system settings"
+	},
+	"dashboard": {
+		"title": "Dashboard",
+		"subtitle": "Business overview and statistics"
+	}
+}
