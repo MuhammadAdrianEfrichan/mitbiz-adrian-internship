@@ -1,5 +1,5 @@
 import LogoMarkBl from "../LogoMarkBL"
-import TopBarLogo from "../TopBarLogo"
+import TopBarLogoLogin from "../TopBarLogoLogin";
 
 const ContentLogin = ({ children }) => {
     return (
@@ -7,7 +7,7 @@ const ContentLogin = ({ children }) => {
             <LogoMarkBl />
 
             <div className="relative mx-auto min-h-screen max-w-360 px-4 sm:px-8 lg:px-10">
-                <TopBarLogo />
+                <TopBarLogoLogin />
 
                 <div className="flex min-h-screen flex-col items-center justify-center gap-10 pb-12 pt-24 lg:flex-row lg:items-center lg:justify-between lg:gap-14">
                     {children}
