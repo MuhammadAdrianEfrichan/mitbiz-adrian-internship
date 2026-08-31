@@ -93,7 +93,6 @@ const PengaturanSuperAdmin = () => {
 	const { refreshSettings } = useSettings();
 
 
-
 	const loadSettings = () => {
 		setLoading(true);
 		setError(null);

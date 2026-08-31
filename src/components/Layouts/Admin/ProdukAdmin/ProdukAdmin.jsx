@@ -123,7 +123,7 @@ const handleSearch = (value) => {
               <FiPackage size={16} />
             </span>
           </div>
-          <div className="text-[2.2rem] font-bold leading-none text-slate-800">5</div>
+          <div className="text-[2.2rem] font-bold leading-none text-slate-800">{totalProduct}</div>
         </div>
       </section>
 
