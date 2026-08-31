@@ -144,7 +144,7 @@ const ManajementBisnisSuperAdmin = () => {
 		loadOutlets();
 	}, []);
 
-	// Daftar bisnis unik, diambil dari outlet yang sudah ada — dipakai sebagai opsi saat "Tambah Cabang"
+	// Daftar bisnis unik, diambil dari outlet yang sudah ada — dipakai sebagai opsi saat "Tambah Bisnis"
 	const businessOptions = useMemo(() => {
 		const map = new Map();
 		businesses.forEach((b) => {
@@ -178,7 +178,7 @@ const ManajementBisnisSuperAdmin = () => {
 		<main className="min-w-0 flex-1 overflow-y-auto bg-white px-5 py-5 sm:px-8">
 			<header className="mb-5 flex flex-wrap items-start justify-between gap-4">
 				<div>
-					<h1 className="text-[2.1rem] font-bold tracking-tight text-slate-800">Manajemen Cabang</h1>
+					<h1 className="text-[2.1rem] font-bold tracking-tight text-slate-800">Manajemen Bisnis</h1>
 					<p className="mt-1 text-sm text-slate-500">Kelola semua cabang di seluruh lokasi</p>
 				</div>
 				<button
@@ -187,7 +187,7 @@ const ManajementBisnisSuperAdmin = () => {
 					className="inline-flex items-center gap-2 rounded-xl bg-[#1c86ef] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#1779dc]"
 				>
 					<FiPlus size={17} />
-					Tambah Cabang
+					Tambah Bisnis
 				</button>
 			</header>
 
